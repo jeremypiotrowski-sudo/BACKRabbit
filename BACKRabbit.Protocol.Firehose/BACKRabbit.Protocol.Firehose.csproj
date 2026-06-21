@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- SerialPort support for COM-port EDL transports (WinUsbTransport) -->
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BACKRabbit.Usb\BACKRabbit.Usb.csproj" />
+  </ItemGroup>
+
 </Project>
