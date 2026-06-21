@@ -1,0 +1,7 @@
+# Core Python libraries for handling binary data and GUI
+pydantic>=2.0
+dearpygui>=1.17.0
+requests # For fetching stock firmware if needed in Level 3 fallback
+
+# Binary data handling (if specific python libs are required, otherwise standard library is sufficient)
+# Note: Compression libraries like 'lz4' or 'zstd' might require system packages (e.g., pip install libmagic pillow)

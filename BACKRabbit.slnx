@@ -1,0 +1,11 @@
+<Solution>
+  <Project Path="BACKRabbit.CLI/BACKRabbit.CLI.csproj" />
+  <Project Path="BACKRabbit.Core/BACKRabbit.Core.csproj" />
+  <Project Path="BACKRabbit.Firmware/BACKRabbit.Firmware.csproj" />
+  <Project Path="BACKRabbit.MagiskCore/BACKRabbit.MagiskCore.csproj" />
+  <Project Path="BACKRabbit.Protocol.Adb/BACKRabbit.Protocol.Adb.csproj" />
+  <Project Path="BACKRabbit.Protocol.DownloadMode/BACKRabbit.Protocol.DownloadMode.csproj" />
+  <Project Path="BACKRabbit.Protocol.Fastboot/BACKRabbit.Protocol.Fastboot.csproj" />
+  <Project Path="BACKRabbit.Tests/BACKRabbit.Tests.csproj" />
+  <Project Path="BACKRabbit.Usb/BACKRabbit.Usb.csproj" />
+</Solution>

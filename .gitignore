@@ -1,0 +1,92 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+bld/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+*.ncb
+*.opensdf
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# .NET build outputs
+**/[Bb]in/
+**/[Oo]bj/
+*.dll
+*.exe
+*.pdb
+
+# Large binary artifacts
+*.apk
+*.img
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.iso
+*.fw
+*.rom
+*.pit
+*.pit2
+
+# Downloaded tools & binaries
+Magisk-*.apk
+magisk_binaries/
+platform-tools/
+downloads/
+
+# Build outputs
+build/
+
+# Diagnostic noise
+build_output*.txt
+detect_output*.txt
+test_output*.txt
+test_results*.txt
+smoke_test*.txt
+wizard_test_output*.txt
+wizard_offline.txt
+wizard_final*.txt
+trap_output.txt
+build3.txt
+
+# Gate files
+GATE_*.txt
+
+# Other diagnostic files
+boot_analysis.txt
+boot_detect.txt
+init_boot_analysis.txt
+magisk_verify.txt
+forensic_privapps.txt
+publish_linux.txt
+publish_win.txt
+repo_info.txt
+
+# OS
+Thumbs.db
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Dist
+dist/
+
+# Magisk git mirror (too large for GitHub)
+knowledge-base/magisk-versions/magisk-mirror/

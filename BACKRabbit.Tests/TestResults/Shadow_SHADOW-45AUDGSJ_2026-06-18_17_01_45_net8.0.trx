@@ -1,0 +1,522 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="63bae6be-80e1-45e0-b229-b4af6fbcc81a" name="Shadow@SHADOW-45AUDGSJ 2026-06-18 17:01:45" runUser="SHADOW-45AUDGSJ\Shadow" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-06-18T17:01:45.5371453-05:00" queuing="2026-06-18T17:01:45.5371454-05:00" start="2026-06-18T17:01:44.6520603-05:00" finish="2026-06-18T17:01:49.6754901-05:00" />
+  <TestSettings name="default" id="66b9777d-0bae-4f21-bc27-ef5e7b033a85">
+    <Deployment runDeploymentRoot="Shadow_SHADOW-45AUDGSJ_2026-06-18_17_01_45" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="77d26147-6cce-47de-9aa5-ed7183359772" testId="be9e8ec9-27ec-6f12-db49-9c814f45fe88" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Xz_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0362192" startTime="2026-06-18T17:01:45.5363871-05:00" endTime="2026-06-18T17:01:45.5363873-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="77d26147-6cce-47de-9aa5-ed7183359772" />
+    <UnitTestResult executionId="37bc7d8e-f5d4-4692-bf39-8a98b51ffa0d" testId="484e8822-d8ad-4fa5-7d0b-d6a46b7b2a8c" testName="BACKRabbit.Tests.MagiskCoreTests.MagiskArtifactDetector_FindsArtifacts" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0013597" startTime="2026-06-18T17:01:45.5056697-05:00" endTime="2026-06-18T17:01:45.5056698-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="37bc7d8e-f5d4-4692-bf39-8a98b51ffa0d" />
+    <UnitTestResult executionId="e47913a3-0963-4d8a-9902-c066120dd148" testId="571897f7-fa4d-e01e-469f-76803a238e0e" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_LargeArchive_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0208224" startTime="2026-06-18T17:01:45.5036400-05:00" endTime="2026-06-18T17:01:45.5036402-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e47913a3-0963-4d8a-9902-c066120dd148" />
+    <UnitTestResult executionId="d7f8232f-e6cd-4647-883d-6351ba623d18" testId="10938fcc-a41d-d171-ce83-f4613d30d0ae" testName="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_StagingFirmware_ProducesCleanBootImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.1007355" startTime="2026-06-18T17:01:45.6486455-05:00" endTime="2026-06-18T17:01:45.6486458-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d7f8232f-e6cd-4647-883d-6351ba623d18" />
+    <UnitTestResult executionId="31aec848-4100-47c4-983b-74d1d4b626ad" testId="c1a9cc4e-4453-d245-f85d-4936e5825ab5" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lz4Legacy_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0096971" startTime="2026-06-18T17:01:45.5164384-05:00" endTime="2026-06-18T17:01:45.5164385-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="31aec848-4100-47c4-983b-74d1d4b626ad" />
+    <UnitTestResult executionId="f7b0af5c-722e-4277-9654-15d7c38c057b" testId="ee9304ff-821f-d864-e0c5-fe7aca330c43" testName="BACKRabbit.Tests.AvbRestorerTests.Restore_FlagsAlready0_Remains0" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0002091" startTime="2026-06-18T17:01:45.5033622-05:00" endTime="2026-06-18T17:01:45.5033622-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f7b0af5c-722e-4277-9654-15d7c38c057b" />
+    <UnitTestResult executionId="c8a7dd25-1c6e-4730-ae0f-accc6c5e41b0" testId="98c945fb-e6fd-d723-f2f5-638b9bd7ef1a" testName="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_PatchedImage_ReturnsCorrectArtifactCount" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0001604" startTime="2026-06-18T17:01:45.5034986-05:00" endTime="2026-06-18T17:01:45.5034988-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c8a7dd25-1c6e-4730-ae0f-accc6c5e41b0" />
+    <UnitTestResult executionId="3345784a-57f2-4d50-8f93-908e9bcc4bd3" testId="bf577951-f0f6-1d33-382e-b57ceecf863a" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_VendorBootV4_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0627394" startTime="2026-06-18T17:01:49.3464324-05:00" endTime="2026-06-18T17:01:49.3464326-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3345784a-57f2-4d50-8f93-908e9bcc4bd3" />
+    <UnitTestResult executionId="29dc5c82-04d8-4325-a546-135d0a188de1" testId="15a30257-dd24-637c-837c-7f1876f09f67" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:02.0554834" startTime="2026-06-18T17:01:49.1309477-05:00" endTime="2026-06-18T17:01:49.1309480-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="29dc5c82-04d8-4325-a546-135d0a188de1">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : No valid boot image header found</Message>
+          <StackTrace>   at BACKRabbit.MagiskCore.Parser.BootImageParser.Parse(Byte[] data) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Parser\BootImageParser.cs:line 67&#xD;
+   at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 23&#xD;
+   at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 337&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="04bc6314-dab6-4ac4-9634-a60587ef6160" testId="44f6dad7-f0c1-f190-4a9c-d42b9c1d0252" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_DetectMagiskArtifacts_CleanBootImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0004584" startTime="2026-06-18T17:01:45.5139552-05:00" endTime="2026-06-18T17:01:45.5139554-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="04bc6314-dab6-4ac4-9634-a60587ef6160">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_DetectMagiskArtifacts_CleanBootImage() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 101&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="928c2ea8-2f3d-4540-9839-5bd19e17d0fd" testId="7bf9abac-88b5-0c86-81ca-05da56a934b6" testName="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsGzip" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0000992" startTime="2026-06-18T17:01:45.5159082-05:00" endTime="2026-06-18T17:01:45.5159082-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="928c2ea8-2f3d-4540-9839-5bd19e17d0fd" />
+    <UnitTestResult executionId="8a6544ff-874c-481c-ac4e-950b51749c20" testId="f2657798-7894-4134-5e13-b400a5c65bcc" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_MixedEntries_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0023994" startTime="2026-06-18T17:01:45.5134332-05:00" endTime="2026-06-18T17:01:45.5134333-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8a6544ff-874c-481c-ac4e-950b51749c20" />
+    <UnitTestResult executionId="b6402209-7647-4ecf-ab5f-772e58c5866c" testId="566e34c2-0f6c-cc63-1f69-4ab3c7a5b7e5" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ParseBootImage_FormatDetection" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0007401" startTime="2026-06-18T17:01:45.5157832-05:00" endTime="2026-06-18T17:01:45.5157833-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b6402209-7647-4ecf-ab5f-772e58c5866c">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ParseBootImage_FormatDetection() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 79&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0df74077-7c0c-4330-b651-c0b5174141db" testId="acb1df6c-f64f-7361-3bcc-3537f7950627" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_DHTB_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.1639808" startTime="2026-06-18T17:01:49.5116742-05:00" endTime="2026-06-18T17:01:49.5116755-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0df74077-7c0c-4330-b651-c0b5174141db">
+      <Output>
+        <ErrorInfo>
+          <Message>Synthetic DHTB: Ramdisk size mismatch (4119 vs 4142)</Message>
+          <StackTrace>   at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 53&#xD;
+   at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_DHTB_Header_ProducesIdenticalImage() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 291&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="920f6e72-a774-485f-a06c-0f76fcf56f00" testId="feeb3707-1fa7-7813-e862-956fa8b77fc8" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.2519040" startTime="2026-06-18T17:01:46.7222860-05:00" endTime="2026-06-18T17:01:46.7222863-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="920f6e72-a774-485f-a06c-0f76fcf56f00">
+      <Output>
+        <ErrorInfo>
+          <Message>System.IO.InvalidDataException : LZ4 frame magic number expected</Message>
+          <StackTrace>   at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.ReadHeader(EmptyToken token)&#xD;
+   at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.EnsureHeader(EmptyToken token)&#xD;
+   at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.ReadManyBytes(EmptyToken token, Span`1 buffer, Boolean interactive)&#xD;
+   at K4os.Compression.LZ4.Streams.LZ4DecoderStream.Read(Byte[] buffer, Int32 offset, Int32 count)&#xD;
+   at System.IO.Stream.CopyTo(Stream destination, Int32 bufferSize)&#xD;
+   at BACKRabbit.MagiskCore.Compression.CompressionEngine.DecompressLz4(Byte[] data) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Compression\CompressionEngine.cs:line 183&#xD;
+   at BACKRabbit.MagiskCore.Compression.CompressionEngine.Decompress(Byte[] data, Nullable`1 format) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Compression\CompressionEngine.cs:line 79&#xD;
+   at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 95&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="477fb52a-31ab-4dbe-ae4f-189b8b5944ac" testId="6f47f5c7-9ed0-4edf-4916-16b651d8630a" testName="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_CleanedImage_DetectReturnsFalse" computerName="SHADOW-45AUDGSJ" duration="00:00:00.2156436" startTime="2026-06-18T17:01:45.8645073-05:00" endTime="2026-06-18T17:01:45.8645077-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="477fb52a-31ab-4dbe-ae4f-189b8b5944ac" />
+    <UnitTestResult executionId="89d2aa97-d1fd-4ebf-b55f-239fbcb5bcb1" testId="f95821c8-e266-0fe3-6dc2-9e9aaf28b3d8" testName="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_CleanedImage_ParsesSuccessfully" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0988659" startTime="2026-06-18T17:01:45.5477641-05:00" endTime="2026-06-18T17:01:45.5477645-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="89d2aa97-d1fd-4ebf-b55f-239fbcb5bcb1" />
+    <UnitTestResult executionId="b96aad3c-a2e7-45fd-bfaa-89e7e30d47b7" testId="9bb67144-27f2-b50d-5204-75f6bcb6f5de" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V2_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0775931" startTime="2026-06-18T17:01:46.1439559-05:00" endTime="2026-06-18T17:01:46.1439563-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b96aad3c-a2e7-45fd-bfaa-89e7e30d47b7" />
+    <UnitTestResult executionId="d068e366-5ee3-4ba2-9f56-b7453418582d" testId="f6a56b22-1c10-ca16-50ef-95ab7802a563" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_SamsungPXA_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0467864" startTime="2026-06-18T17:01:49.2835227-05:00" endTime="2026-06-18T17:01:49.2835233-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d068e366-5ee3-4ba2-9f56-b7453418582d" />
+    <UnitTestResult executionId="7e30fbbc-5f86-46a1-acbc-1efe845d79c1" testId="7bdb7e9c-9156-7b22-351e-7301150eb0fa" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V4_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.1254343" startTime="2026-06-18T17:01:46.2695377-05:00" endTime="2026-06-18T17:01:46.2695380-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7e30fbbc-5f86-46a1-acbc-1efe845d79c1" />
+    <UnitTestResult executionId="0a38d042-5ed8-41a2-bf97-17cb4d517079" testId="44b0f7b9-c0c4-18ae-376e-9a5892b958bb" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V3_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0983731" startTime="2026-06-18T17:01:46.4678934-05:00" endTime="2026-06-18T17:01:46.4678937-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0a38d042-5ed8-41a2-bf97-17cb4d517079" />
+    <UnitTestResult executionId="78a310fc-df9b-487f-beab-1eb5258e1bd8" testId="de3ec096-94a3-d8f8-0bac-1d86ae8dc5a3" testName="BACKRabbit.Tests.MagiskCoreTests.CompressionEngine_Gzip_RoundTrip" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0018951" startTime="2026-06-18T17:01:45.5152955-05:00" endTime="2026-06-18T17:01:45.5152955-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="78a310fc-df9b-487f-beab-1eb5258e1bd8" />
+    <UnitTestResult executionId="5971950e-fe40-4192-8590-e07fcfcdd869" testId="559062bf-1fee-68cf-3c4e-7ee16a7b90b0" testName="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsBootImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0038466" startTime="2026-06-18T17:01:45.5146675-05:00" endTime="2026-06-18T17:01:45.5146676-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5971950e-fe40-4192-8590-e07fcfcdd869" />
+    <UnitTestResult executionId="3dff55f4-e7e9-47dd-972f-7ce672aa63ca" testId="e4bbdea4-aa32-f976-2df3-9b433dd7cef0" testName="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_HasBackup_ReturnsBackupAvailableTrue" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0097772" startTime="2026-06-18T17:01:45.4636414-05:00" endTime="2026-06-18T17:01:45.4636627-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3dff55f4-e7e9-47dd-972f-7ce672aa63ca" />
+    <UnitTestResult executionId="d0be84dd-d03c-4e1a-9819-1d773d22455f" testId="00aea5dd-3380-db21-5ccd-eddf5d3d7d0a" testName="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsLZ4" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0002714" startTime="2026-06-18T17:01:45.5158500-05:00" endTime="2026-06-18T17:01:45.5158501-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d0be84dd-d03c-4e1a-9819-1d773d22455f" />
+    <UnitTestResult executionId="87aa0135-361d-47f7-a0dc-5f7d1d667b0e" testId="b25305e8-554e-247a-8c1d-14f4a18873bb" testName="BACKRabbit.Tests.AvbRestorerTests.Restore_NoAvbFooter_ReturnsGracefully" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0005342" startTime="2026-06-18T17:01:45.5032319-05:00" endTime="2026-06-18T17:01:45.5032320-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="87aa0135-361d-47f7-a0dc-5f7d1d667b0e" />
+    <UnitTestResult executionId="b775d7d1-8a65-4faa-bfd6-ffce6157162c" testId="e8f3e5ba-3fb7-b95d-cd6e-98e0e7730613" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lzma_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0411798" startTime="2026-06-18T17:01:45.5163834-05:00" endTime="2026-06-18T17:01:45.5163835-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b775d7d1-8a65-4faa-bfd6-ffce6157162c" />
+    <UnitTestResult executionId="5ab1c81a-64cd-4648-ba7f-3b8b6b2d2fca" testId="72316916-4a8b-31f8-f382-188e31c627bd" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_LargeFile_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:03.1081096" startTime="2026-06-18T17:01:48.5814941-05:00" endTime="2026-06-18T17:01:48.5814944-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5ab1c81a-64cd-4648-ba7f-3b8b6b2d2fca" />
+    <UnitTestResult executionId="08792f35-328c-475d-9172-a2006971ec2f" testId="4a7e7090-e2bc-8260-184e-c1f37d96ecab" testName="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_NoBackup_ReturnsBackupAvailableFalse" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0000961" startTime="2026-06-18T17:01:45.5034433-05:00" endTime="2026-06-18T17:01:45.5034433-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="08792f35-328c-475d-9172-a2006971ec2f" />
+    <UnitTestResult executionId="e1df4a7d-1871-4e81-9f15-284d6c9ca993" testId="1fc46c3a-3661-12c7-7036-679d68c2ce16" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Bzip2_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0387809" startTime="2026-06-18T17:01:45.6616953-05:00" endTime="2026-06-18T17:01:45.6616958-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e1df4a7d-1871-4e81-9f15-284d6c9ca993" />
+    <UnitTestResult executionId="ff9e1d0a-d1b1-47c5-bb4f-2f4d6b871028" testId="0c2df578-2ac9-3e58-7548-c78ae019fba5" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lz4_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0007735" startTime="2026-06-18T17:01:45.6625658-05:00" endTime="2026-06-18T17:01:45.6625660-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ff9e1d0a-d1b1-47c5-bb4f-2f4d6b871028" />
+    <UnitTestResult executionId="8f8df5c4-1be0-49e0-9519-5571344e15f1" testId="04e398da-bceb-604d-89d1-0e35e111ba91" testName="BACKRabbit.Tests.MagiskCoreTests.CpioArchive_ParseAndSerialize_RoundTrip" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0203183" startTime="2026-06-18T17:01:45.5035889-05:00" endTime="2026-06-18T17:01:45.5035892-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8f8df5c4-1be0-49e0-9519-5571344e15f1" />
+    <UnitTestResult executionId="ffb948a5-8ee7-4cbd-b7a9-69f05ec3f56b" testId="67173118-06c4-05d4-0fea-5ba4c3c1eecc" testName="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_KnownPatchedImage_ReturnsIsMagiskInstalledTrue" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0003082" startTime="2026-06-18T17:01:45.5027392-05:00" endTime="2026-06-18T17:01:45.5027395-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ffb948a5-8ee7-4cbd-b7a9-69f05ec3f56b" />
+    <UnitTestResult executionId="87ce5722-2f5e-45c1-b18a-e5eaa090e31a" testId="78752896-132a-fc54-b4c9-a4157f493ea8" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_EmptyArchive_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0001310" startTime="2026-06-18T17:01:45.5134957-05:00" endTime="2026-06-18T17:01:45.5134958-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="87ce5722-2f5e-45c1-b18a-e5eaa090e31a" />
+    <UnitTestResult executionId="445467ea-8cac-437f-831b-b4b2273e5cd8" testId="00345b05-6e08-091f-1ef5-f8c763c10785" testName="BACKRabbit.Tests.AvbRestorerTests.Restore_FlagsAre3_RestoresTo0" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0096554" startTime="2026-06-18T17:01:45.4659753-05:00" endTime="2026-06-18T17:01:45.4659755-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="445467ea-8cac-437f-831b-b4b2273e5cd8" />
+    <UnitTestResult executionId="bb7c41a4-25ae-4c97-b133-7d0a13148101" testId="08e86e01-84e1-eff3-2105-b6a4eb289e45" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_VendorBootV3_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.2906981" startTime="2026-06-18T17:01:45.7397489-05:00" endTime="2026-06-18T17:01:45.7397492-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bb7c41a4-25ae-4c97-b133-7d0a13148101" />
+    <UnitTestResult executionId="3a15b2d9-b8ee-470b-9a79-6d9adde5ddf5" testId="849e5564-0972-53ae-3b88-7a4465ce4637" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_BootImg_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.3260920" startTime="2026-06-18T17:01:46.0661226-05:00" endTime="2026-06-18T17:01:46.0661231-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3a15b2d9-b8ee-470b-9a79-6d9adde5ddf5" />
+    <UnitTestResult executionId="230a777f-5c5f-40cf-ba93-b1db2857f316" testId="f872ace8-8c28-956e-4628-027768984942" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ExtractBootImage_FromFirmwareZip" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0010065" startTime="2026-06-18T17:01:45.5133471-05:00" endTime="2026-06-18T17:01:45.5133472-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="230a777f-5c5f-40cf-ba93-b1db2857f316">
+      <Output>
+        <ErrorInfo>
+          <Message>F966U1 firmware zip not found: SAMFW.COM_SM-F966U1_XAA_F966U1UEUABZF1_fac.zip. Download from samfw.com.</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ExtractBootImage_FromFirmwareZip() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 25&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2b2f303f-d172-4afd-8df8-6e94f0d02d7e" testId="f0ea4a3f-2308-5fec-8e6e-27edfaa4c404" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_InitBootImg_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0267107" startTime="2026-06-18T17:01:47.0740199-05:00" endTime="2026-06-18T17:01:47.0740203-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b2f303f-d172-4afd-8df8-6e94f0d02d7e" />
+    <UnitTestResult executionId="d6183952-aba2-4426-aecf-2d715a60c9b4" testId="9999f5e8-8516-392d-7b1a-1efdc4bded8e" testName="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_CleanStockImage_ReturnsIsMagiskInstalledFalse" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0031287" startTime="2026-06-18T17:01:45.5033919-05:00" endTime="2026-06-18T17:01:45.5033919-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6183952-aba2-4426-aecf-2d715a60c9b4" />
+    <UnitTestResult executionId="e3191d93-b516-4155-8470-9442116a1190" testId="c47e753e-8f8c-0965-f829-bb2295796990" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_MTK_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.3257353" startTime="2026-06-18T17:01:47.0480227-05:00" endTime="2026-06-18T17:01:47.0480230-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e3191d93-b516-4155-8470-9442116a1190">
+      <Output>
+        <ErrorInfo>
+          <Message>Synthetic MTK: Ramdisk size mismatch (4119 vs 4142)</Message>
+          <StackTrace>   at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label) in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 53&#xD;
+   at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_MTK_Header_ProducesIdenticalImage() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs:line 314&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="65968060-1e77-48fe-8464-0b1472ce53bc" testId="782bc7f4-297d-c45c-fd86-7ffe7de763e8" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_CompressionEngine_HandlesRamdiskCompression" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0022723" startTime="2026-06-18T17:01:45.5152159-05:00" endTime="2026-06-18T17:01:45.5152160-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="65968060-1e77-48fe-8464-0b1472ce53bc">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_CompressionEngine_HandlesRamdiskCompression() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 186&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="dc39a5d0-b8cd-4aa1-82b4-54f4d6fff3b1" testId="9678a399-5034-0852-fb58-f52df8880ae0" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_SingleFile_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0005370" startTime="2026-06-18T17:01:48.5821078-05:00" endTime="2026-06-18T17:01:48.5821081-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dc39a5d0-b8cd-4aa1-82b4-54f4d6fff3b1" />
+    <UnitTestResult executionId="600c6196-5c72-470f-bc6d-e5dab4ffef27" testId="84a52e5a-316d-dc05-06dc-9956e8f3e5d4" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_LargeData_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0862681" startTime="2026-06-18T17:01:45.6227967-05:00" endTime="2026-06-18T17:01:45.6227969-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="600c6196-5c72-470f-bc6d-e5dab4ffef27" />
+    <UnitTestResult executionId="f4bc4b6f-466a-47fd-b238-6095a01f1fee" testId="beaceebd-e99f-a010-23a8-a9780c228bf5" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_AvbFooter_DetectionAndRestore" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0004539" startTime="2026-06-18T17:01:45.5163235-05:00" endTime="2026-06-18T17:01:45.5163236-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f4bc4b6f-466a-47fd-b238-6095a01f1fee">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_AvbFooter_DetectionAndRestore() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 166&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="30e73c36-9567-42e5-8386-63b0b71d8498" testId="36d69589-0849-ce1e-1d43-51b38753989f" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V1_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0996506" startTime="2026-06-18T17:01:46.3693318-05:00" endTime="2026-06-18T17:01:46.3693325-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="30e73c36-9567-42e5-8386-63b0b71d8498" />
+    <UnitTestResult executionId="befb2485-37b0-456b-bfb3-2510d48292c9" testId="f9c162ae-1845-a069-8125-9564f78ec60b" testName="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_RoundTrip_RepackPreservesIntegrity" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0104733" startTime="2026-06-18T17:01:45.5122100-05:00" endTime="2026-06-18T17:01:45.5122103-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="befb2485-37b0-456b-bfb3-2510d48292c9">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.NotNull() Failure: Value is null</Message>
+          <StackTrace>   at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_RoundTrip_RepackPreservesIntegrity() in c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs:line 136&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="027be7c0-6e40-42e9-abe5-95ebc7c98158" testId="fefb829d-377f-17df-7b2c-74514fd1a872" testName="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V0_Header_ProducesIdenticalImage" computerName="SHADOW-45AUDGSJ" duration="00:00:00.1066109" startTime="2026-06-18T17:01:49.2365829-05:00" endTime="2026-06-18T17:01:49.2365832-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="027be7c0-6e40-42e9-abe5-95ebc7c98158" />
+    <UnitTestResult executionId="4b6fcb35-d9a9-4a0b-acd6-64c45f996593" testId="9517d7b2-9b44-989d-91ba-7a1457fab674" testName="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Gzip_ProducesIdenticalData" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0005516" startTime="2026-06-18T17:01:45.6631701-05:00" endTime="2026-06-18T17:01:45.6631703-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4b6fcb35-d9a9-4a0b-acd6-64c45f996593" />
+    <UnitTestResult executionId="3be44517-f03c-447e-b911-b96dd9dc7d06" testId="d2a7129a-2a42-0448-5954-d45329614293" testName="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_SpecialFilenames_ProducesIdenticalBytes" computerName="SHADOW-45AUDGSJ" duration="00:00:00.0002828" startTime="2026-06-18T17:01:45.5056029-05:00" endTime="2026-06-18T17:01:45.5056029-05:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="3be44517-f03c-447e-b911-b96dd9dc7d06" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_LargeData_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="84a52e5a-316d-dc05-06dc-9956e8f3e5d4">
+      <Execution id="600c6196-5c72-470f-bc6d-e5dab4ffef27" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_LargeData_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lz4_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="0c2df578-2ac9-3e58-7548-c78ae019fba5">
+      <Execution id="ff9e1d0a-d1b1-47c5-bb4f-2f4d6b871028" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Lz4_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_SamsungPXA_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f6a56b22-1c10-ca16-50ef-95ab7802a563">
+      <Execution id="d068e366-5ee3-4ba2-9f56-b7453418582d" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_SamsungPXA_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ParseBootImage_FormatDetection" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="566e34c2-0f6c-cc63-1f69-4ab3c7a5b7e5">
+      <Execution id="b6402209-7647-4ecf-ab5f-772e58c5866c" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_ParseBootImage_FormatDetection" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_LargeArchive_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="571897f7-fa4d-e01e-469f-76803a238e0e">
+      <Execution id="e47913a3-0963-4d8a-9902-c066120dd148" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_LargeArchive_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_CompressionEngine_HandlesRamdiskCompression" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="782bc7f4-297d-c45c-fd86-7ffe7de763e8">
+      <Execution id="65968060-1e77-48fe-8464-0b1472ce53bc" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_CompressionEngine_HandlesRamdiskCompression" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_VendorBootV3_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="08e86e01-84e1-eff3-2105-b6a4eb289e45">
+      <Execution id="bb7c41a4-25ae-4c97-b133-7d0a13148101" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_VendorBootV3_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_DHTB_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="acb1df6c-f64f-7361-3bcc-3537f7950627">
+      <Execution id="0df74077-7c0c-4330-b651-c0b5174141db" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_DHTB_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V4_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="7bdb7e9c-9156-7b22-351e-7301150eb0fa">
+      <Execution id="7e30fbbc-5f86-46a1-acbc-1efe845d79c1" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_V4_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_HasBackup_ReturnsBackupAvailableTrue" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="e4bbdea4-aa32-f976-2df3-9b433dd7cef0">
+      <Execution id="3dff55f4-e7e9-47dd-972f-7ce672aa63ca" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskArtifactDetectorTests" name="Detect_HasBackup_ReturnsBackupAvailableTrue" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsLZ4" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="00aea5dd-3380-db21-5ccd-eddf5d3d7d0a">
+      <Execution id="d0be84dd-d03c-4e1a-9819-1d773d22455f" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="FormatDetector_DetectsLZ4" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_CleanedImage_ParsesSuccessfully" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f95821c8-e266-0fe3-6dc2-9e9aaf28b3d8">
+      <Execution id="89d2aa97-d1fd-4ebf-b55f-239fbcb5bcb1" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskUninstallerTests" name="Uninstall_CleanedImage_ParsesSuccessfully" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_EmptyArchive_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="78752896-132a-fc54-b4c9-a4157f493ea8">
+      <Execution id="87ce5722-2f5e-45c1-b18a-e5eaa090e31a" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_EmptyArchive_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lzma_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="e8f3e5ba-3fb7-b95d-cd6e-98e0e7730613">
+      <Execution id="b775d7d1-8a65-4faa-bfd6-ffce6157162c" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Lzma_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_SingleFile_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="9678a399-5034-0852-fb58-f52df8880ae0">
+      <Execution id="dc39a5d0-b8cd-4aa1-82b4-54f4d6fff3b1" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_SingleFile_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V1_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="36d69589-0849-ce1e-1d43-51b38753989f">
+      <Execution id="30e73c36-9567-42e5-8386-63b0b71d8498" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_V1_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_RoundTrip_RepackPreservesIntegrity" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f9c162ae-1845-a069-8125-9564f78ec60b">
+      <Execution id="befb2485-37b0-456b-bfb3-2510d48292c9" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_RoundTrip_RepackPreservesIntegrity" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V3_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="44b0f7b9-c0c4-18ae-376e-9a5892b958bb">
+      <Execution id="0a38d042-5ed8-41a2-bf97-17cb4d517079" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_V3_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_MTK_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="c47e753e-8f8c-0965-f829-bb2295796990">
+      <Execution id="e3191d93-b516-4155-8470-9442116a1190" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_MTK_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_NoBackup_ReturnsBackupAvailableFalse" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="4a7e7090-e2bc-8260-184e-c1f37d96ecab">
+      <Execution id="08792f35-328c-475d-9172-a2006971ec2f" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskArtifactDetectorTests" name="Detect_NoBackup_ReturnsBackupAvailableFalse" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V2_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="9bb67144-27f2-b50d-5204-75f6bcb6f5de">
+      <Execution id="b96aad3c-a2e7-45fd-bfaa-89e7e30d47b7" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_V2_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_V0_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="fefb829d-377f-17df-7b2c-74514fd1a872">
+      <Execution id="027be7c0-6e40-42e9-abe5-95ebc7c98158" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_V0_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.CpioArchive_ParseAndSerialize_RoundTrip" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="04e398da-bceb-604d-89d1-0e35e111ba91">
+      <Execution id="8f8df5c4-1be0-49e0-9519-5571344e15f1" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="CpioArchive_ParseAndSerialize_RoundTrip" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_AvbFooter_DetectionAndRestore" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="beaceebd-e99f-a010-23a8-a9780c228bf5">
+      <Execution id="f4bc4b6f-466a-47fd-b238-6095a01f1fee" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_AvbFooter_DetectionAndRestore" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.CompressionEngine_Gzip_RoundTrip" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="de3ec096-94a3-d8f8-0bac-1d86ae8dc5a3">
+      <Execution id="78a310fc-df9b-487f-beab-1eb5258e1bd8" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="CompressionEngine_Gzip_RoundTrip" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ExtractBootImage_FromFirmwareZip" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f872ace8-8c28-956e-4628-027768984942">
+      <Execution id="230a777f-5c5f-40cf-ba93-b1db2857f316" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_ExtractBootImage_FromFirmwareZip" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_VendorBootV4_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="bf577951-f0f6-1d33-382e-b57ceecf863a">
+      <Execution id="3345784a-57f2-4d50-8f93-908e9bcc4bd3" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_VendorBootV4_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_MixedEntries_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f2657798-7894-4134-5e13-b400a5c65bcc">
+      <Execution id="8a6544ff-874c-481c-ac4e-950b51749c20" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_MixedEntries_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_SpecialFilenames_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="d2a7129a-2a42-0448-5954-d45329614293">
+      <Execution id="3be44517-f03c-447e-b911-b96dd9dc7d06" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_SpecialFilenames_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="15a30257-dd24-637c-837c-7f1876f09f67">
+      <Execution id="29dc5c82-04d8-4325-a546-135d0a188de1" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="feeb3707-1fa7-7813-e862-956fa8b77fc8">
+      <Execution id="920f6e72-a774-485f-a06c-0f76fcf56f00" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_BootImg_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="849e5564-0972-53ae-3b88-7a4465ce4637">
+      <Execution id="3a15b2d9-b8ee-470b-9a79-6d9adde5ddf5" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_F966U1_BootImg_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.AvbRestorerTests.Restore_NoAvbFooter_ReturnsGracefully" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="b25305e8-554e-247a-8c1d-14f4a18873bb">
+      <Execution id="87aa0135-361d-47f7-a0dc-5f7d1d667b0e" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.AvbRestorerTests" name="Restore_NoAvbFooter_ReturnsGracefully" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Lz4Legacy_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="c1a9cc4e-4453-d245-f85d-4936e5825ab5">
+      <Execution id="31aec848-4100-47c4-983b-74d1d4b626ad" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Lz4Legacy_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_CleanStockImage_ReturnsIsMagiskInstalledFalse" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="9999f5e8-8516-392d-7b1a-1efdc4bded8e">
+      <Execution id="d6183952-aba2-4426-aecf-2d715a60c9b4" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskArtifactDetectorTests" name="Detect_CleanStockImage_ReturnsIsMagiskInstalledFalse" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsBootImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="559062bf-1fee-68cf-3c4e-7ee16a7b90b0">
+      <Execution id="5971950e-fe40-4192-8590-e07fcfcdd869" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="FormatDetector_DetectsBootImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Bzip2_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="1fc46c3a-3661-12c7-7036-679d68c2ce16">
+      <Execution id="e1df4a7d-1871-4e81-9f15-284d6c9ca993" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Bzip2_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.MagiskArtifactDetector_FindsArtifacts" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="484e8822-d8ad-4fa5-7d0b-d6a46b7b2a8c">
+      <Execution id="37bc7d8e-f5d4-4692-bf39-8a98b51ffa0d" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="MagiskArtifactDetector_FindsArtifacts" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_StagingFirmware_ProducesCleanBootImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="10938fcc-a41d-d171-ce83-f4613d30d0ae">
+      <Execution id="d7f8232f-e6cd-4647-883d-6351ba623d18" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskUninstallerTests" name="Uninstall_StagingFirmware_ProducesCleanBootImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Gzip_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="9517d7b2-9b44-989d-91ba-7a1457fab674">
+      <Execution id="4b6fcb35-d9a9-4a0b-acd6-64c45f996593" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Gzip_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.F966U1IntegrationTests.F966U1_DetectMagiskArtifacts_CleanBootImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="44f6dad7-f0c1-f190-4a9c-d42b9c1d0252">
+      <Execution id="04bc6314-dab6-4ac4-9634-a60587ef6160" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.F966U1IntegrationTests" name="F966U1_DetectMagiskArtifacts_CleanBootImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CpioArchiveTests.SerializeReParse_LargeFile_ProducesIdenticalBytes" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="72316916-4a8b-31f8-f382-188e31c627bd">
+      <Execution id="5ab1c81a-64cd-4648-ba7f-3b8b6b2d2fca" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CpioArchiveTests" name="SerializeReParse_LargeFile_ProducesIdenticalBytes" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_KnownPatchedImage_ReturnsIsMagiskInstalledTrue" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="67173118-06c4-05d4-0fea-5ba4c3c1eecc">
+      <Execution id="ffb948a5-8ee7-4cbd-b7a9-69f05ec3f56b" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskArtifactDetectorTests" name="Detect_KnownPatchedImage_ReturnsIsMagiskInstalledTrue" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskArtifactDetectorTests.Detect_PatchedImage_ReturnsCorrectArtifactCount" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="98c945fb-e6fd-d723-f2f5-638b9bd7ef1a">
+      <Execution id="c8a7dd25-1c6e-4730-ae0f-accc6c5e41b0" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskArtifactDetectorTests" name="Detect_PatchedImage_ReturnsCorrectArtifactCount" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskCoreTests.FormatDetector_DetectsGzip" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="7bf9abac-88b5-0c86-81ca-05da56a934b6">
+      <Execution id="928c2ea8-2f3d-4540-9839-5bd19e17d0fd" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskCoreTests" name="FormatDetector_DetectsGzip" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.AvbRestorerTests.Restore_FlagsAre3_RestoresTo0" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="00345b05-6e08-091f-1ef5-f8c763c10785">
+      <Execution id="445467ea-8cac-437f-831b-b4b2273e5cd8" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.AvbRestorerTests" name="Restore_FlagsAre3_RestoresTo0" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_InitBootImg_ProducesIdenticalImage" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="f0ea4a3f-2308-5fec-8e6e-27edfaa4c404">
+      <Execution id="2b2f303f-d172-4afd-8df8-6e94f0d02d7e" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.BootImageParserTests" name="ParseRepackReParse_F966U1_InitBootImg_ProducesIdenticalImage" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.AvbRestorerTests.Restore_FlagsAlready0_Remains0" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="ee9304ff-821f-d864-e0c5-fe7aca330c43">
+      <Execution id="f7b0af5c-722e-4277-9654-15d7c38c057b" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.AvbRestorerTests" name="Restore_FlagsAlready0_Remains0" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.CompressionEngineTests.CompressDecompress_Xz_ProducesIdenticalData" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="be9e8ec9-27ec-6f12-db49-9c814f45fe88">
+      <Execution id="77d26147-6cce-47de-9aa5-ed7183359772" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.CompressionEngineTests" name="CompressDecompress_Xz_ProducesIdenticalData" />
+    </UnitTest>
+    <UnitTest name="BACKRabbit.Tests.MagiskUninstallerTests.Uninstall_CleanedImage_DetectReturnsFalse" storage="c:\users\shadow\documents\backrabbit\backrabbit.tests\bin\release\net8.0\backrabbit.tests.dll" id="6f47f5c7-9ed0-4edf-4916-16b651d8630a">
+      <Execution id="477fb52a-31ab-4dbe-ae4f-189b8b5944ac" />
+      <TestMethod codeBase="C:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\bin\Release\net8.0\BACKRabbit.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="BACKRabbit.Tests.MagiskUninstallerTests" name="Uninstall_CleanedImage_DetectReturnsFalse" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="be9e8ec9-27ec-6f12-db49-9c814f45fe88" executionId="77d26147-6cce-47de-9aa5-ed7183359772" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="484e8822-d8ad-4fa5-7d0b-d6a46b7b2a8c" executionId="37bc7d8e-f5d4-4692-bf39-8a98b51ffa0d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="571897f7-fa4d-e01e-469f-76803a238e0e" executionId="e47913a3-0963-4d8a-9902-c066120dd148" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="10938fcc-a41d-d171-ce83-f4613d30d0ae" executionId="d7f8232f-e6cd-4647-883d-6351ba623d18" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c1a9cc4e-4453-d245-f85d-4936e5825ab5" executionId="31aec848-4100-47c4-983b-74d1d4b626ad" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ee9304ff-821f-d864-e0c5-fe7aca330c43" executionId="f7b0af5c-722e-4277-9654-15d7c38c057b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="98c945fb-e6fd-d723-f2f5-638b9bd7ef1a" executionId="c8a7dd25-1c6e-4730-ae0f-accc6c5e41b0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="bf577951-f0f6-1d33-382e-b57ceecf863a" executionId="3345784a-57f2-4d50-8f93-908e9bcc4bd3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="15a30257-dd24-637c-837c-7f1876f09f67" executionId="29dc5c82-04d8-4325-a546-135d0a188de1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="44f6dad7-f0c1-f190-4a9c-d42b9c1d0252" executionId="04bc6314-dab6-4ac4-9634-a60587ef6160" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7bf9abac-88b5-0c86-81ca-05da56a934b6" executionId="928c2ea8-2f3d-4540-9839-5bd19e17d0fd" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f2657798-7894-4134-5e13-b400a5c65bcc" executionId="8a6544ff-874c-481c-ac4e-950b51749c20" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="566e34c2-0f6c-cc63-1f69-4ab3c7a5b7e5" executionId="b6402209-7647-4ecf-ab5f-772e58c5866c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="acb1df6c-f64f-7361-3bcc-3537f7950627" executionId="0df74077-7c0c-4330-b651-c0b5174141db" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="feeb3707-1fa7-7813-e862-956fa8b77fc8" executionId="920f6e72-a774-485f-a06c-0f76fcf56f00" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f47f5c7-9ed0-4edf-4916-16b651d8630a" executionId="477fb52a-31ab-4dbe-ae4f-189b8b5944ac" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f95821c8-e266-0fe3-6dc2-9e9aaf28b3d8" executionId="89d2aa97-d1fd-4ebf-b55f-239fbcb5bcb1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9bb67144-27f2-b50d-5204-75f6bcb6f5de" executionId="b96aad3c-a2e7-45fd-bfaa-89e7e30d47b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f6a56b22-1c10-ca16-50ef-95ab7802a563" executionId="d068e366-5ee3-4ba2-9f56-b7453418582d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7bdb7e9c-9156-7b22-351e-7301150eb0fa" executionId="7e30fbbc-5f86-46a1-acbc-1efe845d79c1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="44b0f7b9-c0c4-18ae-376e-9a5892b958bb" executionId="0a38d042-5ed8-41a2-bf97-17cb4d517079" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="de3ec096-94a3-d8f8-0bac-1d86ae8dc5a3" executionId="78a310fc-df9b-487f-beab-1eb5258e1bd8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="559062bf-1fee-68cf-3c4e-7ee16a7b90b0" executionId="5971950e-fe40-4192-8590-e07fcfcdd869" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e4bbdea4-aa32-f976-2df3-9b433dd7cef0" executionId="3dff55f4-e7e9-47dd-972f-7ce672aa63ca" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00aea5dd-3380-db21-5ccd-eddf5d3d7d0a" executionId="d0be84dd-d03c-4e1a-9819-1d773d22455f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b25305e8-554e-247a-8c1d-14f4a18873bb" executionId="87aa0135-361d-47f7-a0dc-5f7d1d667b0e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e8f3e5ba-3fb7-b95d-cd6e-98e0e7730613" executionId="b775d7d1-8a65-4faa-bfd6-ffce6157162c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="72316916-4a8b-31f8-f382-188e31c627bd" executionId="5ab1c81a-64cd-4648-ba7f-3b8b6b2d2fca" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4a7e7090-e2bc-8260-184e-c1f37d96ecab" executionId="08792f35-328c-475d-9172-a2006971ec2f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1fc46c3a-3661-12c7-7036-679d68c2ce16" executionId="e1df4a7d-1871-4e81-9f15-284d6c9ca993" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0c2df578-2ac9-3e58-7548-c78ae019fba5" executionId="ff9e1d0a-d1b1-47c5-bb4f-2f4d6b871028" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="04e398da-bceb-604d-89d1-0e35e111ba91" executionId="8f8df5c4-1be0-49e0-9519-5571344e15f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="67173118-06c4-05d4-0fea-5ba4c3c1eecc" executionId="ffb948a5-8ee7-4cbd-b7a9-69f05ec3f56b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="78752896-132a-fc54-b4c9-a4157f493ea8" executionId="87ce5722-2f5e-45c1-b18a-e5eaa090e31a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="00345b05-6e08-091f-1ef5-f8c763c10785" executionId="445467ea-8cac-437f-831b-b4b2273e5cd8" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="08e86e01-84e1-eff3-2105-b6a4eb289e45" executionId="bb7c41a4-25ae-4c97-b133-7d0a13148101" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="849e5564-0972-53ae-3b88-7a4465ce4637" executionId="3a15b2d9-b8ee-470b-9a79-6d9adde5ddf5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f872ace8-8c28-956e-4628-027768984942" executionId="230a777f-5c5f-40cf-ba93-b1db2857f316" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f0ea4a3f-2308-5fec-8e6e-27edfaa4c404" executionId="2b2f303f-d172-4afd-8df8-6e94f0d02d7e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9999f5e8-8516-392d-7b1a-1efdc4bded8e" executionId="d6183952-aba2-4426-aecf-2d715a60c9b4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c47e753e-8f8c-0965-f829-bb2295796990" executionId="e3191d93-b516-4155-8470-9442116a1190" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="782bc7f4-297d-c45c-fd86-7ffe7de763e8" executionId="65968060-1e77-48fe-8464-0b1472ce53bc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9678a399-5034-0852-fb58-f52df8880ae0" executionId="dc39a5d0-b8cd-4aa1-82b4-54f4d6fff3b1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="84a52e5a-316d-dc05-06dc-9956e8f3e5d4" executionId="600c6196-5c72-470f-bc6d-e5dab4ffef27" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="beaceebd-e99f-a010-23a8-a9780c228bf5" executionId="f4bc4b6f-466a-47fd-b238-6095a01f1fee" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="36d69589-0849-ce1e-1d43-51b38753989f" executionId="30e73c36-9567-42e5-8386-63b0b71d8498" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="f9c162ae-1845-a069-8125-9564f78ec60b" executionId="befb2485-37b0-456b-bfb3-2510d48292c9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="fefb829d-377f-17df-7b2c-74514fd1a872" executionId="027be7c0-6e40-42e9-abe5-95ebc7c98158" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9517d7b2-9b44-989d-91ba-7a1457fab674" executionId="4b6fcb35-d9a9-4a0b-acd6-64c45f996593" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d2a7129a-2a42-0448-5954-d45329614293" executionId="3be44517-f03c-447e-b911-b96dd9dc7d06" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="50" executed="50" passed="40" failed="10" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.28)&#xD;
+[xUnit.net 00:00:00.24]   Discovering: BACKRabbit.Tests&#xD;
+[xUnit.net 00:00:00.27]   Discovered:  BACKRabbit.Tests&#xD;
+[xUnit.net 00:00:00.28]   Starting:    BACKRabbit.Tests&#xD;
+[xUnit.net 00:00:00.38]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.38]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.38]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(136,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_RoundTrip_RepackPreservesIntegrity()&#xD;
+[xUnit.net 00:00:00.38]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.38]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.38]       F966U1 firmware zip not found: SAMFW.COM_SM-F966U1_XAA_F966U1UEUABZF1_fac.zip. Download from samfw.com.&#xD;
+[xUnit.net 00:00:00.38]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.38]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(25,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ExtractBootImage_FromFirmwareZip()&#xD;
+[xUnit.net 00:00:00.38]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.38]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.38]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.38]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.38]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(101,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_DetectMagiskArtifacts_CleanBootImage()&#xD;
+[xUnit.net 00:00:00.38]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.38]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.39]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.39]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.39]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(186,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_CompressionEngine_HandlesRamdiskCompression()&#xD;
+[xUnit.net 00:00:00.39]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.39]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.39]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.39]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.39]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(79,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ParseBootImage_FormatDetection()&#xD;
+[xUnit.net 00:00:00.39]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.39]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.39]       Assert.NotNull() Failure: Value is null&#xD;
+[xUnit.net 00:00:00.39]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.39]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\F966U1IntegrationTests.cs(166,0): at BACKRabbit.Tests.F966U1IntegrationTests.F966U1_AvbFooter_DetectionAndRestore()&#xD;
+[xUnit.net 00:00:00.39]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:00.39]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:01.59]       System.IO.InvalidDataException : LZ4 frame magic number expected&#xD;
+[xUnit.net 00:00:01.59]       Stack Trace:&#xD;
+[xUnit.net 00:00:01.59]            at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.ReadHeader(EmptyToken token)&#xD;
+[xUnit.net 00:00:01.59]            at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.EnsureHeader(EmptyToken token)&#xD;
+[xUnit.net 00:00:01.59]            at K4os.Compression.LZ4.Streams.Frames.LZ4FrameReader`2.ReadManyBytes(EmptyToken token, Span`1 buffer, Boolean interactive)&#xD;
+[xUnit.net 00:00:01.59]            at K4os.Compression.LZ4.Streams.LZ4DecoderStream.Read(Byte[] buffer, Int32 offset, Int32 count)&#xD;
+[xUnit.net 00:00:01.59]            at System.IO.Stream.CopyTo(Stream destination, Int32 bufferSize)&#xD;
+[xUnit.net 00:00:01.59]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Compression\CompressionEngine.cs(183,0): at BACKRabbit.MagiskCore.Compression.CompressionEngine.DecompressLz4(Byte[] data)&#xD;
+[xUnit.net 00:00:01.59]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Compression\CompressionEngine.cs(79,0): at BACKRabbit.MagiskCore.Compression.CompressionEngine.Decompress(Byte[] data, Nullable`1 format)&#xD;
+[xUnit.net 00:00:01.59]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(95,0): at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage()&#xD;
+[xUnit.net 00:00:01.59]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:01.59]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:01.92]       Synthetic MTK: Ramdisk size mismatch (4119 vs 4142)&#xD;
+[xUnit.net 00:00:01.92]       Stack Trace:&#xD;
+[xUnit.net 00:00:01.92]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(53,0): at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label)&#xD;
+[xUnit.net 00:00:01.92]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(314,0): at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_MTK_Header_ProducesIdenticalImage()&#xD;
+[xUnit.net 00:00:01.92]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:01.92]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:04.00]       System.IO.InvalidDataException : No valid boot image header found&#xD;
+[xUnit.net 00:00:04.00]       Stack Trace:&#xD;
+[xUnit.net 00:00:04.00]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.MagiskCore\Parser\BootImageParser.cs(67,0): at BACKRabbit.MagiskCore.Parser.BootImageParser.Parse(Byte[] data)&#xD;
+[xUnit.net 00:00:04.00]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(23,0): at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label)&#xD;
+[xUnit.net 00:00:04.00]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(337,0): at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage()&#xD;
+[xUnit.net 00:00:04.00]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:04.00]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:04.38]       Synthetic DHTB: Ramdisk size mismatch (4119 vs 4142)&#xD;
+[xUnit.net 00:00:04.38]       Stack Trace:&#xD;
+[xUnit.net 00:00:04.38]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(53,0): at BACKRabbit.Tests.BootImageParserTests.AssertRoundTrip(Byte[] original, String label)&#xD;
+[xUnit.net 00:00:04.38]         c:\Users\Shadow\Documents\BACKRabbit\BACKRabbit.Tests\BootImageParserTests.cs(291,0): at BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_DHTB_Header_ProducesIdenticalImage()&#xD;
+[xUnit.net 00:00:04.38]            at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)&#xD;
+[xUnit.net 00:00:04.38]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:04.39]   Finished:    BACKRabbit.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5553686-05:00">
+        <Text>[xUnit.net 00:00:00.38]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_RoundTrip_RepackPreservesIntegrity [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5557297-05:00">
+        <Text>[xUnit.net 00:00:00.38]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ExtractBootImage_FromFirmwareZip [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5559570-05:00">
+        <Text>[xUnit.net 00:00:00.38]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_DetectMagiskArtifacts_CleanBootImage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5715077-05:00">
+        <Text>[xUnit.net 00:00:00.39]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_CompressionEngine_HandlesRamdiskCompression [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5717772-05:00">
+        <Text>[xUnit.net 00:00:00.39]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_ParseBootImage_FormatDetection [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:45.5719562-05:00">
+        <Text>[xUnit.net 00:00:00.39]     BACKRabbit.Tests.F966U1IntegrationTests.F966U1_AvbFooter_DetectionAndRestore [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:46.7215320-05:00">
+        <Text>[xUnit.net 00:00:01.59]     BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_F966U1_VendorBootImg_ProducesIdenticalImage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:47.0477218-05:00">
+        <Text>[xUnit.net 00:00:01.92]     BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_MTK_Header_ProducesIdenticalImage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:49.1301983-05:00">
+        <Text>[xUnit.net 00:00:04.00]     BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_ChromeOS_Header_ProducesIdenticalImage [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="SHADOW-45AUDGSJ" outcome="Error" timestamp="2026-06-18T17:01:49.5109773-05:00">
+        <Text>[xUnit.net 00:00:04.38]     BACKRabbit.Tests.BootImageParserTests.ParseRepackReParse_DHTB_Header_ProducesIdenticalImage [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

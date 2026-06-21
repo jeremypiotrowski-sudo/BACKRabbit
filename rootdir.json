@@ -1,0 +1,226 @@
+[
+  {
+    "name": ".gitattributes",
+    "path": ".gitattributes",
+    "sha": "eed785ce8010d05f22ed7767265280a3bcf01c25",
+    "size": 562,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitattributes?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/.gitattributes",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/eed785ce8010d05f22ed7767265280a3bcf01c25",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/.gitattributes",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitattributes?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/eed785ce8010d05f22ed7767265280a3bcf01c25",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/.gitattributes"
+    }
+  },
+  {
+    "name": ".github",
+    "path": ".github",
+    "sha": "fb4c4bfe01027b7c3c1a8ccaa4a0c4937492ced6",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/.github?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/.github",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/fb4c4bfe01027b7c3c1a8ccaa4a0c4937492ced6",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/.github?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/fb4c4bfe01027b7c3c1a8ccaa4a0c4937492ced6",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/.github"
+    }
+  },
+  {
+    "name": ".gitignore",
+    "path": ".gitignore",
+    "sha": "006b3d35bdcbbffdcf8d4aa1fa898a4f39f90bbf",
+    "size": 170,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitignore?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/.gitignore",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/006b3d35bdcbbffdcf8d4aa1fa898a4f39f90bbf",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/.gitignore",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitignore?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/006b3d35bdcbbffdcf8d4aa1fa898a4f39f90bbf",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/.gitignore"
+    }
+  },
+  {
+    "name": ".gitmodules",
+    "path": ".gitmodules",
+    "sha": "9794e9007f3c51d05a616e48321736b25913bccd",
+    "size": 728,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitmodules?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/.gitmodules",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/9794e9007f3c51d05a616e48321736b25913bccd",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/.gitmodules",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/.gitmodules?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/9794e9007f3c51d05a616e48321736b25913bccd",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/.gitmodules"
+    }
+  },
+  {
+    "name": "AGENTS.md",
+    "path": "AGENTS.md",
+    "sha": "ee906336bf50a24ad6ef64732bea7bb94d889cb9",
+    "size": 607,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/AGENTS.md?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/AGENTS.md",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/ee906336bf50a24ad6ef64732bea7bb94d889cb9",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/AGENTS.md",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/AGENTS.md?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/ee906336bf50a24ad6ef64732bea7bb94d889cb9",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/AGENTS.md"
+    }
+  },
+  {
+    "name": "LICENSE",
+    "path": "LICENSE",
+    "sha": "9cecc1d4669ee8af2ca727a5d8cde10cd8b2d7cc",
+    "size": 35141,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/LICENSE?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/LICENSE",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/9cecc1d4669ee8af2ca727a5d8cde10cd8b2d7cc",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/LICENSE",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/LICENSE?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/9cecc1d4669ee8af2ca727a5d8cde10cd8b2d7cc",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/LICENSE"
+    }
+  },
+  {
+    "name": "README.MD",
+    "path": "README.MD",
+    "sha": "4212cbc999f18bf7e31067efe88df73508d19d84",
+    "size": 2550,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/README.MD?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/README.MD",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/4212cbc999f18bf7e31067efe88df73508d19d84",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/README.MD",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/README.MD?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/4212cbc999f18bf7e31067efe88df73508d19d84",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/README.MD"
+    }
+  },
+  {
+    "name": "app",
+    "path": "app",
+    "sha": "ffa6d053785b2962b0c07e4ea7ff79999f93c8f3",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/app?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/app",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/ffa6d053785b2962b0c07e4ea7ff79999f93c8f3",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/app?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/ffa6d053785b2962b0c07e4ea7ff79999f93c8f3",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/app"
+    }
+  },
+  {
+    "name": "build.py",
+    "path": "build.py",
+    "sha": "29721386ef94276eaa58b500c492bb0f89cd9c9b",
+    "size": 22556,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/build.py?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/build.py",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/29721386ef94276eaa58b500c492bb0f89cd9c9b",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/build.py",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/build.py?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/29721386ef94276eaa58b500c492bb0f89cd9c9b",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/build.py"
+    }
+  },
+  {
+    "name": "config.prop.sample",
+    "path": "config.prop.sample",
+    "sha": "c17e17366ccdececdc1e026d47f5c413d72f7db1",
+    "size": 835,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/config.prop.sample?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/blob/master/config.prop.sample",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/c17e17366ccdececdc1e026d47f5c413d72f7db1",
+    "download_url": "https://raw.githubusercontent.com/topjohnwu/Magisk/master/config.prop.sample",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/config.prop.sample?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/blobs/c17e17366ccdececdc1e026d47f5c413d72f7db1",
+      "html": "https://github.com/topjohnwu/Magisk/blob/master/config.prop.sample"
+    }
+  },
+  {
+    "name": "docs",
+    "path": "docs",
+    "sha": "4ba49d4c7f1924eed6d1e38b8897ccdb6a929850",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/docs?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/docs",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/4ba49d4c7f1924eed6d1e38b8897ccdb6a929850",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/docs?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/4ba49d4c7f1924eed6d1e38b8897ccdb6a929850",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/docs"
+    }
+  },
+  {
+    "name": "native",
+    "path": "native",
+    "sha": "459d2356a99af6b1fa53dbca68ef9826aa338bf7",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/native?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/native",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/459d2356a99af6b1fa53dbca68ef9826aa338bf7",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/native?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/459d2356a99af6b1fa53dbca68ef9826aa338bf7",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/native"
+    }
+  },
+  {
+    "name": "scripts",
+    "path": "scripts",
+    "sha": "18268549485b916887274dcd0ccf9017786bf685",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/scripts?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/scripts",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/18268549485b916887274dcd0ccf9017786bf685",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/scripts?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/18268549485b916887274dcd0ccf9017786bf685",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/scripts"
+    }
+  },
+  {
+    "name": "tools",
+    "path": "tools",
+    "sha": "df96448ca4526c766ede20091ef884054ccc7e5f",
+    "size": 0,
+    "url": "https://api.github.com/repos/topjohnwu/Magisk/contents/tools?ref=master",
+    "html_url": "https://github.com/topjohnwu/Magisk/tree/master/tools",
+    "git_url": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/df96448ca4526c766ede20091ef884054ccc7e5f",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/topjohnwu/Magisk/contents/tools?ref=master",
+      "git": "https://api.github.com/repos/topjohnwu/Magisk/git/trees/df96448ca4526c766ede20091ef884054ccc7e5f",
+      "html": "https://github.com/topjohnwu/Magisk/tree/master/tools"
+    }
+  }
+]
