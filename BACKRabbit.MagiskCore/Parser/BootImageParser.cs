@@ -314,7 +314,7 @@ public class BootImageParser
         // DTB (v2+, vendor)
         if (img.HeaderVersion >= 2 || img.IsVendor)
         {
-            img.DtbOffset = GetDtbOffset(img);
+            img.DtbOffset = offset;  // File offset, not memory address (dtb_addr)
             img.DtbSize = GetDtbSize(img);
             offset += Align(img.DtbSize, pageSize);
         }
