@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BACKRabbit.Usb\BACKRabbit.Usb.csproj" />
+    <ProjectReference Include="..\BACKRabbit.MagiskCore\BACKRabbit.MagiskCore.csproj" />
   </ItemGroup>
 
 </Project>
