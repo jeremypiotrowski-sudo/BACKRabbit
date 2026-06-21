@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using BACKRabbit.Protocol.Firehose;
+using BACKRabbit.Protocol.Firehose.Rescue;
 
 namespace BACKRabbit.CLI.Commands;
 
@@ -19,6 +20,12 @@ public static class FirehoseCommands
     private static readonly Option<string> InputOpt = new("--input", "Input file to flash") { IsRequired = true };
     private static readonly Option<string> ModeOpt = new("--mode", () => "system", "Reset mode: edl, system, off");
 
+    // Rescue-specific options
+    private static readonly Option<string> BackupOpt = new("--backup", "Path to known-good backup directory") { IsRequired = true };
+    private static readonly Option<string> PartitionsOpt = new("--partitions", "Comma-separated partition names to restore");
+    private static readonly Option<string> SocOpt = new("--soc", "SoC model override for QFuse lookup");
+    private static readonly Option<string> SlotOpt = new("--slot", () => "both", "Boot slot: a, b, or both");
+
     static FirehoseCommands()
     {
         PartitionOpt.AddAlias("-p");
@@ -28,6 +35,10 @@ public static class FirehoseCommands
         LoaderOpt.AddAlias("-l");
         LunOpt.AddAlias("-u");
         ModeOpt.AddAlias("-m");
+        BackupOpt.AddAlias("-b");
+        PartitionsOpt.AddAlias("-P");
+        SocOpt.AddAlias("-S");
+        SlotOpt.AddAlias("-s");
     }
 
     public static Command CreateCommand()
@@ -42,6 +53,7 @@ public static class FirehoseCommands
         firehose.AddCommand(CreateReset());
         firehose.AddCommand(CreateNop());
         firehose.AddCommand(CreateStorageInfo());
+        firehose.AddCommand(CreateRescueCommand());
         return firehose;
     }
 
@@ -192,6 +204,157 @@ public static class FirehoseCommands
             var info = await client.GetStorageInfoAsync();
             Console.WriteLine($"Storage: {info}");
             await client.DisconnectAsync();
+        });
+        return cmd;
+    }
+
+    // ─── RESCUE COMMANDS ──────────────────────────────────────
+
+    private static Command CreateRescueCommand()
+    {
+        var rescue = new Command("rescue", "Post-attack device recovery operations");
+        rescue.AddCommand(CreateRescueDiagnose());
+        rescue.AddCommand(CreateRescueRestore());
+        rescue.AddCommand(CreateRescueFuses());
+        rescue.AddCommand(CreateRescueUnmagisk());
+        rescue.AddCommand(CreateRescueFull());
+        return rescue;
+    }
+
+    private static Command CreateRescueDiagnose()
+    {
+        var cmd = new Command("diagnose", "Diagnose all security-critical partitions")
+            { DeviceOpt, LoaderOpt, BackupOpt, OutputOpt };
+        cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx);
+            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt);
+            var outputPath = ctx.ParseResult.GetValueForOption(OutputOpt);
+
+            var report = new RescueReport();
+            var diagnostics = new PartitionDiagnostics(client, report, backupDir);
+            await diagnostics.RunAsync();
+
+            var json = report.ToJson();
+            if (!string.IsNullOrEmpty(outputPath))
+            {
+                await File.WriteAllTextAsync(outputPath, json);
+                Console.WriteLine($"Report saved to: {outputPath}");
+            }
+            else
+            {
+                Console.WriteLine(json);
+            }
+            report.PrintSummary();
+            await client.DisconnectAsync();
+        });
+        return cmd;
+    }
+
+    private static Command CreateRescueRestore()
+    {
+        var cmd = new Command("restore", "Restore partitions from known-good backup")
+            { DeviceOpt, LoaderOpt, BackupOpt, PartitionsOpt };
+        cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx);
+            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt)!;
+            var partitionsStr = ctx.ParseResult.GetValueForOption(PartitionsOpt);
+
+            var report = new RescueReport();
+            var restorer = new PartitionRestorer(client, backupDir, report);
+
+            List<string> partitions;
+            if (!string.IsNullOrEmpty(partitionsStr))
+                partitions = partitionsStr.Split(',').Select(p => p.Trim()).ToList();
+            else
+            {
+                // Restore all tampered partitions from diagnosis
+                var diagnostics = new PartitionDiagnostics(client, report, backupDir);
+                await diagnostics.RunAsync();
+                partitions = report.Partitions
+                    .Where(p => p.Status == "Tampered")
+                    .Select(p => p.PartitionName)
+                    .ToList();
+                Console.WriteLine($"Auto-selected tampered partitions: {string.Join(", ", partitions)}");
+            }
+
+            await restorer.RestoreAsync(partitions);
+            report.PrintSummary();
+            await client.DisconnectAsync();
+        });
+        return cmd;
+    }
+
+    private static Command CreateRescueFuses()
+    {
+        var cmd = new Command("fuses", "Audit QFuse status")
+            { DeviceOpt, LoaderOpt, SocOpt };
+        cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx);
+            var socModel = ctx.ParseResult.GetValueForOption(SocOpt);
+
+            var auditor = new QFuseAuditor(client, socModel);
+            var result = await auditor.AuditAsync();
+
+            Console.WriteLine($"\nQFuse Audit — SoC: {socModel ?? "auto-detected"}");
+            Console.WriteLine($"Blown: {result.TotalBlown}/{result.TotalAvailable}");
+            Console.WriteLine($"{"Fuse",-35} {"Addr",-10} {"Bit",-5} {"Status",-8} {"Implication"}");
+            Console.WriteLine(new string('-', 90));
+            foreach (var f in result.Fuses)
+            {
+                Console.WriteLine($"{f.FuseName,-35} 0x{f.Address:X8} {f.BitNumber,-5} {(f.IsBlown ? "BLOWN" : "ok"),-8} {f.Implication}");
+            }
+
+            if (result.PermanentDamageWarnings.Count > 0)
+            {
+                Console.WriteLine($"\nPERMANENT DAMAGE:");
+                foreach (var w in result.PermanentDamageWarnings)
+                    Console.WriteLine($"  * {w}");
+            }
+
+            await client.DisconnectAsync();
+        });
+        return cmd;
+    }
+
+    private static Command CreateRescueUnmagisk()
+    {
+        var cmd = new Command("unmagisk", "Surgically remove Magisk from boot images")
+            { DeviceOpt, LoaderOpt, BackupOpt, SlotOpt };
+        cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx);
+            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt)!;
+            var slot = ctx.ParseResult.GetValueForOption(SlotOpt) ?? "both";
+
+            var report = new RescueReport();
+            var remover = new MagiskRemover(client, backupDir, report);
+
+            if (slot == "both")
+                await remover.RemoveAllAsync();
+            else
+                await remover.RemoveFromSlotAsync(slot);
+
+            report.PrintSummary();
+            await client.DisconnectAsync();
+        });
+        return cmd;
+    }
+
+    private static Command CreateRescueFull()
+    {
+        var cmd = new Command("full", "Run complete rescue sequence (diagnose + fuses + restore + unmagisk)")
+            { DeviceOpt, LoaderOpt, BackupOpt };
+        cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx);
+            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt)!;
+
+            var orchestrator = new RescueOrchestrator(client, backupDir);
+            await orchestrator.RunFullRescueAsync();
+            // Device resets at end of full rescue — no disconnect needed
         });
         return cmd;
     }
