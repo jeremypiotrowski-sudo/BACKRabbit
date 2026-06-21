@@ -372,7 +372,7 @@ public static class FirehoseCommands
                     var outputDir = Path.Combine(
                         Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                         "BACKRabbit", "Firmware", $"{model}_{region}_{DateTime.Now:yyyyMMdd_HHmmss}");
-                    var result = await sourcer.SourceAsync(model, region, outputDir);
+                    var result = await sourcer.SourceAsync(model, region, null, outputDir);
                     if (result.Success)
                     {
                         resolvedBackupDir = result.FirmwarePath;

@@ -507,7 +507,7 @@ public class Program
         {
             Console.WriteLine($"🐰 Sourcing firmware for {model}/{region}...");
             var sourcer = new FirmwareSourcer();
-            var result = await sourcer.SourceAsync(model, region, output);
+            var result = await sourcer.SourceAsync(model, region, null, output);
             Console.WriteLine($"✅ Firmware sourced: {result.FirmwarePath}");
             Console.WriteLine($"   Partitions: {string.Join(", ", result.ExtractedPartitions)}");
             return;

@@ -62,7 +62,7 @@ public class FirmwareTui
                 $"Sourcing {model}/{region}",
                 async renderer =>
                 {
-                    return await _sourcer.SourceAsync(model, region, outputDir, renderer, ct);
+                    return await _sourcer.SourceAsync(model, region, null, outputDir, renderer, ct);
                 });
         }
         catch (FirmwareSourceException ex)
@@ -350,7 +350,7 @@ public class FirmwareTui
                         $"Retrying {model}/{region}",
                         async renderer =>
                         {
-                            return await _sourcer.SourceAsync(model, region, outputDir, renderer, ct);
+                            return await _sourcer.SourceAsync(model, region, null, outputDir, renderer, ct);
                         });
                     ShowResultScreen(result);
                     return result;
