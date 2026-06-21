@@ -25,6 +25,9 @@ public static class FirehoseCommands
     private static readonly Option<string> PartitionsOpt = new("--partitions", "Comma-separated partition names to restore");
     private static readonly Option<string> SocOpt = new("--soc", "SoC model override for QFuse lookup");
     private static readonly Option<string> SlotOpt = new("--slot", () => "both", "Boot slot: a, b, or both");
+    private static readonly Option<string?> ModelOpt = new("--model", "Samsung model for firmware sourcing (e.g., SM-F966U1)");
+    private static readonly Option<string?> RegionOpt = new("--region", "CSC/region code for firmware sourcing (e.g., XAA)");
+    private static readonly Option<bool> SkipTuiOpt = new("--skip-tui", "Skip interactive TUI for firmware sourcing");
 
     static FirehoseCommands()
     {
@@ -39,6 +42,8 @@ public static class FirehoseCommands
         PartitionsOpt.AddAlias("-P");
         SocOpt.AddAlias("-S");
         SlotOpt.AddAlias("-s");
+        ModelOpt.AddAlias("-M");
+        RegionOpt.AddAlias("-R");
     }
 
     public static Command CreateCommand()
@@ -346,13 +351,55 @@ public static class FirehoseCommands
     private static Command CreateRescueFull()
     {
         var cmd = new Command("full", "Run complete rescue sequence (diagnose + fuses + restore + unmagisk)")
-            { DeviceOpt, LoaderOpt, BackupOpt };
+            { DeviceOpt, LoaderOpt, BackupOpt, ModelOpt, RegionOpt, SkipTuiOpt };
         cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
         {
             var (client, _) = await InitClientAsync(ctx);
-            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt)!;
+            var backupDir = ctx.ParseResult.GetValueForOption(BackupOpt);
+            var model = ctx.ParseResult.GetValueForOption(ModelOpt);
+            var region = ctx.ParseResult.GetValueForOption(RegionOpt);
+            var skipTui = ctx.ParseResult.GetValueForOption(SkipTuiOpt);
 
-            var orchestrator = new RescueOrchestrator(client, backupDir);
+            // Phase 0: Source firmware if no backup provided
+            string? resolvedBackupDir = backupDir;
+            if (string.IsNullOrEmpty(resolvedBackupDir))
+            {
+                // If model and region provided with skip-tui, source directly
+                if (!string.IsNullOrEmpty(model) && !string.IsNullOrEmpty(region) && skipTui)
+                {
+                    Console.WriteLine($"[0/7] Sourcing firmware for {model}/{region}...");
+                    var sourcer = new BACKRabbit.Firmware.FirmwareSourcer();
+                    var outputDir = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                        "BACKRabbit", "Firmware", $"{model}_{region}_{DateTime.Now:yyyyMMdd_HHmmss}");
+                    var result = await sourcer.SourceAsync(model, region, outputDir);
+                    if (result.Success)
+                    {
+                        resolvedBackupDir = result.FirmwarePath;
+                        Console.WriteLine($"  Firmware sourced: {resolvedBackupDir}");
+                    }
+                }
+                else if (!skipTui)
+                {
+                    // Launch interactive TUI
+                    Console.WriteLine("[0/7] Launching firmware sourcing TUI...");
+                    var tui = new BACKRabbit.CLI.TUI.FirmwareTui();
+                    var tuiResult = await tui.RunAsync();
+                    if (tuiResult?.Success == true)
+                    {
+                        resolvedBackupDir = tuiResult.FirmwarePath;
+                        Console.WriteLine($"  Firmware sourced: {resolvedBackupDir}");
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(resolvedBackupDir))
+            {
+                Console.WriteLine("⚠️ No firmware backup available. Rescue will diagnose only.");
+                Console.WriteLine("   Provide --backup, --model/--region, or use 'firmware source' first.");
+            }
+
+            var orchestrator = new RescueOrchestrator(client, resolvedBackupDir ?? "");
             await orchestrator.RunFullRescueAsync();
             // Device resets at end of full rescue — no disconnect needed
         });

@@ -7,6 +7,7 @@ using BACKRabbit.Protocol.DownloadMode;
 using BACKRabbit.MagiskCore.Services;
 using BACKRabbit.Firmware;
 using BACKRabbit.CLI.Commands;
+using BACKRabbit.CLI.TUI;
 
 namespace BACKRabbit.CLI;
 
@@ -157,6 +158,26 @@ public class Program
 
         // Firehose (Qualcomm EDL) commands
         rootCommand.AddCommand(FirehoseCommands.CreateCommand());
+
+        // Firmware source command (TUI-based)
+        var firmwareSourceCommand = new Command("source", "Download genuine Samsung firmware (interactive TUI)");
+        var sourceModelOption = new Option<string?>("--model", "Samsung model (e.g., SM-F966U1). If omitted, TUI will prompt.");
+        var sourceRegionOption = new Option<string?>("--region", "CSC/region code (e.g., XAA). If omitted, TUI will prompt.");
+        var sourceOutputOption = new Option<string>("--output", () => 
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "BACKRabbit", "Firmware"),
+            "Output directory for extracted .img files");
+        var sourceSkipTuiOption = new Option<bool>("--skip-tui", "Skip interactive TUI (requires --model and --region)");
+        firmwareSourceCommand.AddOption(sourceModelOption);
+        firmwareSourceCommand.AddOption(sourceRegionOption);
+        firmwareSourceCommand.AddOption(sourceOutputOption);
+        firmwareSourceCommand.AddOption(sourceSkipTuiOption);
+        firmwareSourceCommand.AddOption(verboseOption);
+        firmwareSourceCommand.Handler = CommandHandler.Create<string?, string?, string, bool, bool>(
+            async (string? model, string? region, string output, bool skipTui, bool verbose) =>
+            {
+                await FirmwareSourceHandler(model, region, output, skipTui, verbose);
+            });
+        firmwareCommand.AddCommand(firmwareSourceCommand);
 
         return await rootCommand.InvokeAsync(args);
     }
@@ -477,5 +498,40 @@ public class Program
 
         var exitCode = await Wizard.TrapEscapeRunner.RunAsync(options);
         Environment.Exit(exitCode);
+    }
+
+    private static async Task FirmwareSourceHandler(string? model, string? region, string output, bool skipTui, bool verbose)
+    {
+        // If model and region provided and skip-tui, go straight to download
+        if (!string.IsNullOrEmpty(model) && !string.IsNullOrEmpty(region) && skipTui)
+        {
+            Console.WriteLine($"🐰 Sourcing firmware for {model}/{region}...");
+            var sourcer = new FirmwareSourcer();
+            var result = await sourcer.SourceAsync(model, region, output);
+            Console.WriteLine($"✅ Firmware sourced: {result.FirmwarePath}");
+            Console.WriteLine($"   Partitions: {string.Join(", ", result.ExtractedPartitions)}");
+            return;
+        }
+
+        // If model and region provided but no skip-tui, still use TUI but pre-fill
+        if (!string.IsNullOrEmpty(model) && !string.IsNullOrEmpty(region))
+        {
+            Console.WriteLine($"🐰 Launching firmware TUI with pre-filled {model}/{region}...");
+            // TUI will detect and allow override
+        }
+
+        // Launch interactive TUI
+        var tui = new FirmwareTui();
+        var tuiResult = await tui.RunAsync();
+
+        if (tuiResult?.Success == true)
+        {
+            Console.WriteLine($"✅ Firmware ready at: {tuiResult.FirmwarePath}");
+        }
+        else
+        {
+            Console.WriteLine("⚠️ Firmware sourcing skipped or failed.");
+            Console.WriteLine("   You can provide your own backup via --backup-dir.");
+        }
     }
 }
