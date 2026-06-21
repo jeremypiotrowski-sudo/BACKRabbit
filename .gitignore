@@ -90,3 +90,18 @@ dist/
 
 # Magisk git mirror (too large for GitHub)
 knowledge-base/magisk-versions/magisk-mirror/
+# Root-level dead files (404 stubs, failed extractions - NOT knowledge-base)
+/*.cpp
+/*.hpp
+/*.c
+/*.rs
+/*.sh
+/*.spec
+
+# Test artifacts (everywhere)
+*.trx
+TestResults/
+
+# Python cache (everywhere)
+__pycache__/
+*.pyc
