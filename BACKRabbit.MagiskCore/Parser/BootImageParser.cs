@@ -539,6 +539,7 @@ for (int i = 0; i < entryCount; i++)
 
     private static uint Align(uint value, uint alignment)
     {
+        if (alignment == 0) return value;
         return (value + alignment - 1) / alignment * alignment;
     }
 

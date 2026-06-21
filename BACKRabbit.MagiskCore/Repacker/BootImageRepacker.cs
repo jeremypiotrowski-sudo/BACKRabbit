@@ -488,20 +488,23 @@ public class BootImageRepacker
 
     private uint GetHeaderSize(BootImage img)
     {
+        const uint MinSafeHeaderSize = 4096; // Fallback when page_size is 0 (synthetic test images)
+
         if (img.IsVendor)
         {
-            return img.HeaderVersion == 4 
+            var vendorSize = img.HeaderVersion == 4 
                 ? img.HeaderV4Vendor.header_size 
                 : img.HeaderV3Vendor.header_size;
+            return vendorSize > 0 ? vendorSize : MinSafeHeaderSize;
         }
         return img.HeaderVersion switch
         {
-            0 => 512,
-            1 => 512,
-            2 => 512,
+            0 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
+            1 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
+            2 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
             3 => 4096,
             4 => 4096,
-            _ => 512
+            _ => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize
         };
     }
 
