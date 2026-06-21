@@ -22,20 +22,41 @@ public class RescueOrchestrator
     {
         var report = new RescueReport();
 
-        // [1/6] Diagnose
-        Console.WriteLine("\n[1/6] Diagnosing partitions...");
+        // [0/7] Verify backup directory
+        Console.WriteLine("\n[0/7] Verifying firmware backup...");
+        var requiredPartitions = new[] { "boot.img", "boot_a.img", "init_boot.img", "vbmeta.img", "vbmeta_a.img" };
+        var missingCritical = new List<string>();
+        if (!string.IsNullOrEmpty(_backupDir) && Directory.Exists(_backupDir))
+        {
+            foreach (var required in requiredPartitions)
+            {
+                if (!File.Exists(Path.Combine(_backupDir, required)))
+                    missingCritical.Add(required);
+            }
+            if (missingCritical.Count > 0)
+                Console.WriteLine($"  Warning: Missing critical partitions: {string.Join(", ", missingCritical)}");
+            else
+                Console.WriteLine($"  Backup directory OK: {_backupDir}");
+        }
+        else
+        {
+            Console.WriteLine("  No backup directory — diagnosis-only mode.");
+        }
+
+        // [1/7] Diagnose
+        Console.WriteLine("\n[1/7] Diagnosing partitions...");
         var diagnostics = new PartitionDiagnostics(_client, report, _backupDir);
         await diagnostics.RunAsync(ct);
         Console.WriteLine($"  Done. {report.Partitions.Count} partitions analyzed. Verdict: {report.Verdict}");
 
-        // [2/6] Fuse audit
-        Console.WriteLine("\n[2/6] Auditing QFuses...");
+        // [2/7] Fuse audit
+        Console.WriteLine("\n[2/7] Auditing QFuses...");
         var fuseAuditor = new QFuseAuditor(_client);
         report.FuseAudit = await fuseAuditor.AuditAsync(ct);
         Console.WriteLine($"  Done. {report.FuseAudit.TotalBlown}/{report.FuseAudit.TotalAvailable} fuses blown.");
 
-        // [3/6] Restore tampered partitions
-        Console.WriteLine("\n[3/6] Restoring tampered partitions...");
+        // [3/7] Restore tampered partitions
+        Console.WriteLine("\n[3/7] Restoring tampered partitions...");
         var tampered = report.Partitions
             .Where(p => p.Status == "Tampered")
             .Select(p => p.PartitionName)
@@ -52,8 +73,8 @@ public class RescueOrchestrator
             Console.WriteLine("  No tampered partitions to restore.");
         }
 
-        // [4/6] Remove Magisk
-        Console.WriteLine("\n[4/6] Removing Magisk...");
+        // [4/7] Remove Magisk
+        Console.WriteLine("\n[4/7] Removing Magisk...");
         var magiskTampered = report.Partitions
             .Where(p => p.Anomalies.Any(a => a.Contains("Magisk")))
             .Select(p => p.PartitionName)
@@ -70,8 +91,8 @@ public class RescueOrchestrator
             Console.WriteLine("  No Magisk detected in boot partitions.");
         }
 
-        // [5/6] Final verification
-        Console.WriteLine("\n[5/6] Final verification...");
+        // [5/7] Final verification
+        Console.WriteLine("\n[5/7] Final verification...");
         var verifyReport = new RescueReport();
         var verifyDiagnostics = new PartitionDiagnostics(_client, verifyReport, _backupDir);
         await verifyDiagnostics.RunAsync(ct);
@@ -92,8 +113,8 @@ public class RescueOrchestrator
         report.Verdict = DeterminePostRescueVerdict(report);
         Console.WriteLine($"  Post-rescue verdict: {report.Verdict}");
 
-        // [6/6] Generate report
-        Console.WriteLine("\n[6/6] Generating rescue report...");
+        // [6/7] Generate report
+        Console.WriteLine("\n[6/7] Generating rescue report...");
         var reportPath = Path.Combine(_backupDir, "rescue-report.json");
         await File.WriteAllTextAsync(reportPath, report.ToJson(), ct);
         Console.WriteLine($"  Report saved to: {reportPath}");
