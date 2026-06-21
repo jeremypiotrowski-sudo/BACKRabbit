@@ -6,6 +6,7 @@ using BACKRabbit.Protocol.Fastboot;
 using BACKRabbit.Protocol.DownloadMode;
 using BACKRabbit.MagiskCore.Services;
 using BACKRabbit.Firmware;
+using BACKRabbit.CLI.Commands;
 
 namespace BACKRabbit.CLI;
 
@@ -153,6 +154,9 @@ public class Program
         trapEscapeCommand.AddOption(verboseOption);
         trapEscapeCommand.Handler = CommandHandler.Create<string, bool, bool, string, bool, bool>(TrapEscapeHandler);
         rootCommand.AddCommand(trapEscapeCommand);
+
+        // Firehose (Qualcomm EDL) commands
+        rootCommand.AddCommand(FirehoseCommands.CreateCommand());
 
         return await rootCommand.InvokeAsync(args);
     }

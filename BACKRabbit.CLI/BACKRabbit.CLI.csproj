@@ -26,6 +26,7 @@
     <ProjectReference Include="..\BACKRabbit.Protocol.Fastboot\BACKRabbit.Protocol.Fastboot.csproj" />
     <ProjectReference Include="..\BACKRabbit.Protocol.DownloadMode\BACKRabbit.Protocol.DownloadMode.csproj" />
     <ProjectReference Include="..\BACKRabbit.Firmware\BACKRabbit.Firmware.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Firehose\BACKRabbit.Protocol.Firehose.csproj" />
   </ItemGroup>
 
 </Project>
