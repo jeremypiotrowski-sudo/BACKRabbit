@@ -10,6 +10,7 @@ namespace BACKRabbit.CLI.TUI;
 public class FirmwareTui
 {
     private readonly FirmwareSourcer _sourcer;
+    private string? _imei;
 
     public FirmwareTui(FirmwareSourcer? sourcer = null)
     {
@@ -62,7 +63,7 @@ public class FirmwareTui
                 $"Sourcing {model}/{region}",
                 async renderer =>
                 {
-                    return await _sourcer.SourceAsync(model, region, null, outputDir, renderer, ct);
+                    return await _sourcer.SourceAsync(model, region, _imei, outputDir, renderer, ct);
                 });
         }
         catch (FirmwareSourceException ex)
@@ -141,8 +142,6 @@ public class FirmwareTui
                             {
                                 var sd = samsungDevices[0];
                                 info.SerialNumber ??= sd.SerialNumber;
-                                // Model detection from USB descriptors is limited
-                                // User will need to enter manually
                             }
                         }
                         catch
@@ -156,7 +155,7 @@ public class FirmwareTui
                     // All detection methods failed
                 }
 
-                await Task.Delay(300, ct); // Brief pause for spinner visibility
+                await Task.Delay(300, ct);
             });
 
         return info;
@@ -169,7 +168,6 @@ public class FirmwareTui
     private async Task<(string? model, string? region)> ShowDeviceSummaryAsync(
         DeviceInfo info, CancellationToken ct)
     {
-        // Display detected info
         var table = new Table()
             .Border(TableBorder.Rounded)
             .AddColumn(new TableColumn("[bold]Property[/]").Centered())
@@ -178,19 +176,18 @@ public class FirmwareTui
         table.AddRow("Model", info.Model ?? "[grey]<not detected>[/]");
         table.AddRow("Region/CSC", info.Region ?? "[grey]<not detected>[/]");
         table.AddRow("Serial", info.SerialNumber ?? "[grey]<not detected>[/]");
-        table.AddRow("IMEI", info.Imei ?? "[grey]<not detected>[/]");
+        table.AddRow("IMEI", info.Imei ?? "[grey]<not detected> (optional, helps FUS auth)[/]");
 
         AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
 
-        // Prompt
         var choice = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("[bold]What would you like to do?[/]")
                 .AddChoices(new[]
                 {
                     "[C] Confirm and continue",
-                    "[E] Edit model/region",
+                    "[E] Edit model/region/IMEI",
                     "[S] Skip firmware sourcing",
                     "[Q] Quit",
                 }));
@@ -203,8 +200,8 @@ public class FirmwareTui
                     AnsiConsole.MarkupLine("[yellow]Model not detected. Switching to edit mode.[/]");
                     return await EditDeviceInfoAsync(info, ct);
                 }
-                // Auto-detect region from model if not detected
                 var region = info.Region ?? "XAA";
+                _imei = info.Imei;
                 return (info.Model, region);
 
             case 'E':
@@ -223,7 +220,7 @@ public class FirmwareTui
     }
 
     /// <summary>
-    /// Let user manually enter model and region.
+    /// Let user manually enter model, region, and IMEI.
     /// </summary>
     private async Task<(string? model, string? region)> EditDeviceInfoAsync(
         DeviceInfo info, CancellationToken ct)
@@ -256,6 +253,20 @@ public class FirmwareTui
                     return ValidationResult.Success();
                 }));
 
+        var imei = AnsiConsole.Prompt(
+            new TextPrompt<string>("[bold]IMEI (optional, 15 digits — helps FUS auth):[/]")
+                .DefaultValue(info.Imei ?? "")
+                .AllowEmpty()
+                .Validate(i =>
+                {
+                    if (!string.IsNullOrEmpty(i) && (i.Length != 15 || !i.All(char.IsDigit)))
+                        return ValidationResult.Error("IMEI must be exactly 15 digits");
+                    return ValidationResult.Success();
+                }));
+
+        _imei = string.IsNullOrWhiteSpace(imei) ? null : imei;
+        info.Imei = _imei;
+
         return (model.ToUpperInvariant(), region.ToUpperInvariant());
     }
 
@@ -270,6 +281,8 @@ public class FirmwareTui
 
         AnsiConsole.MarkupLine($"[bold]Model:[/] [green]{model}[/]");
         AnsiConsole.MarkupLine($"[bold]Region/CSC:[/] [green]{region}[/]");
+        if (!string.IsNullOrEmpty(_imei))
+            AnsiConsole.MarkupLine($"[bold]IMEI:[/] [green]{_imei}[/]");
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[grey]Firmware will be downloaded from Samsung FUS servers.[/]");
         AnsiConsole.MarkupLine("[grey]This may take 10-30 minutes depending on your connection.[/]");
@@ -337,7 +350,7 @@ public class FirmwareTui
                 .AddChoices(new[]
                 {
                     "[R] Retry with same model/region",
-                    "[E] Edit model/region and retry",
+                    "[E] Edit model/region/IMEI and retry",
                     "[A] Abort (skip firmware sourcing)",
                 }));
 
@@ -350,7 +363,7 @@ public class FirmwareTui
                         $"Retrying {model}/{region}",
                         async renderer =>
                         {
-                            return await _sourcer.SourceAsync(model, region, null, outputDir, renderer, ct);
+                            return await _sourcer.SourceAsync(model, region, _imei, outputDir, renderer, ct);
                         });
                     ShowResultScreen(result);
                     return result;
@@ -362,7 +375,7 @@ public class FirmwareTui
                 }
 
             case 'E':
-                var info = new DeviceInfo { Model = model, Region = region };
+                var info = new DeviceInfo { Model = model, Region = region, Imei = _imei };
                 var (newModel, newRegion) = await EditDeviceInfoAsync(info, ct);
                 if (newModel == null || newRegion == null) return null;
                 return await HandleFailureAsync(newModel, newRegion, outputDir, ct);
