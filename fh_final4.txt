@@ -1,0 +1,17 @@
+Test run for C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\BACKRabbit.Protocol.Firehose.Tests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 00:00:00.39]     BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloa
+dModeAsync_Cancellation_ThrowsOperationCanceledException [FAIL]
+At line:1 char:38
++ ... BACKRabbit; dotnet test BACKRabbit.Protocol.Firehose.Tests --no-build ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...xception [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  Failed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_Cancellation_ThrowsOperationCanceledException [15 ms]
+  Error Message:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.OperationCanceledException)
+  Stack Trace:
+     at BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_Cancellation_ThrowsOperationCanceledException() in C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\Rescue\RebootDownloadManagerTests.cs:line 58
+--- End of stack trace from previous location ---

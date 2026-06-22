@@ -1,0 +1,156 @@
+{
+  "ImportedAt": "2026-06-22T21:11:47.9652842Z",
+  "SourceFile": "SAMFW.COM_SM-T307U_TMB_T307USQSACXA1_fac.zip",
+  "Partitions": [
+    {
+      "Name": "boot",
+      "FileName": "boot.img",
+      "Sha256": "da6e530d2404dcdb3013459ed2906ca155bd57d630ead3595818e9c0b276c75f",
+      "SizeBytes": 33554432
+    },
+    {
+      "Name": "recovery",
+      "FileName": "recovery.img",
+      "Sha256": "d88dc09e1500e34b412e218050284dd79eb5779f83108da95f9d737b619c2df0",
+      "SizeBytes": 47185920
+    },
+    {
+      "Name": "dt",
+      "FileName": "dt.img",
+      "Sha256": "bd16c2c3133bb872086864517eb3aa458633ae24a4afa9ce68f78cead030d5fc",
+      "SizeBytes": 8388608
+    },
+    {
+      "Name": "dtbo",
+      "FileName": "dtbo.img",
+      "Sha256": "bec903c7c338f503645e9b042d6866b2c2d08fceed1264879d2bcf928d772cc8",
+      "SizeBytes": 8388608
+    },
+    {
+      "Name": "sboot",
+      "FileName": "sboot.img",
+      "Sha256": "31a1d9bf7a9bba8a20c6b2efc468bb9314841c0c215e70ab9c124f06265a9f98",
+      "SizeBytes": 4194304
+    },
+    {
+      "Name": "param",
+      "FileName": "param.img",
+      "Sha256": "3d56839a2c6981f4378c0d161f41151566f9b425481c19f7c578359886f300c8",
+      "SizeBytes": 2304000
+    },
+    {
+      "Name": "cm",
+      "FileName": "cm.img",
+      "Sha256": "52b3f69f6601aa98dcbb43c0663b6db0abf6f4813befc5c2324bbf021b1a2523",
+      "SizeBytes": 8388608
+    },
+    {
+      "Name": "vbmeta",
+      "FileName": "vbmeta.img",
+      "Sha256": "6fc85177116d6f884de4cc3496149c6ce9d27623551afd24882e9b3c083a948e",
+      "SizeBytes": 9104
+    },
+    {
+      "Name": "1",
+      "FileName": "1.img",
+      "Sha256": "f29d3e2ee0f41187c5add025a98137b47a6b116bf2830b47f9e208bc69d5648e",
+      "SizeBytes": 592
+    },
+    {
+      "Name": "modem",
+      "FileName": "modem.img",
+      "Sha256": "74181b6691df9b1eca12f9de97587d3805a35f7f4ace8ddab1099321e712d6a3",
+      "SizeBytes": 46578832
+    },
+    {
+      "Name": "modem_debug",
+      "FileName": "modem_debug.img",
+      "Sha256": "fb31b77544fbf5fa52588bc91d84bc8f0d93439a5957d88dd4fa23081490950c",
+      "SizeBytes": 5242880
+    },
+    {
+      "Name": "1",
+      "FileName": "1.img",
+      "Sha256": "30a4fc9d1c305a8aed56e7c87743c1daa9a3b2f2365645752b7ffd097b522678",
+      "SizeBytes": 432
+    },
+    {
+      "Name": "gta4s_usa_single",
+      "FileName": "gta4s_usa_single.img",
+      "Sha256": "63b7555600fc19430d3bc5f2a5f135f8bc4f8cd631230784bfd7c026e021709a",
+      "SizeBytes": 5572
+    },
+    {
+      "Name": "cache",
+      "FileName": "cache.img",
+      "Sha256": "94eab4b1bb22d68a4894547d4cc837cc6e3eb2b0355ac249a6d914394d0a8332",
+      "SizeBytes": 78044
+    },
+    {
+      "Name": "omr",
+      "FileName": "omr.img",
+      "Sha256": "e1f64363530ef53ca8916e7595e7b9bad2ad10949babea31e828b2c1869a6f52",
+      "SizeBytes": 53360
+    },
+    {
+      "Name": "product",
+      "FileName": "product.img",
+      "Sha256": "210b68855ce16b09ec23822aad1e75a9e1b24361bcfc640fbdb0f7fb3a8bbf0d",
+      "SizeBytes": 168394936
+    },
+    {
+      "Name": "fota",
+      "FileName": "fota.img",
+      "Sha256": "adb325b17143e2e86dc05e944a3a22c02480e2e11c0f1322929f9f3cefa54a31",
+      "SizeBytes": 7331
+    },
+    {
+      "Name": "1",
+      "FileName": "1.img",
+      "Sha256": "7ae0337326fae789fa62f98412f196cd2956cf956731ff85cc6c2942db1fbb9f",
+      "SizeBytes": 592
+    },
+    {
+      "Name": "cache",
+      "FileName": "cache.img",
+      "Sha256": "a64adb95f2089ddf8bc01d79491388ad08e3e58cee7b90ce654040da00aa1ca6",
+      "SizeBytes": 78044
+    },
+    {
+      "Name": "product",
+      "FileName": "product.img",
+      "Sha256": "210b68855ce16b09ec23822aad1e75a9e1b24361bcfc640fbdb0f7fb3a8bbf0d",
+      "SizeBytes": 168394936
+    },
+    {
+      "Name": "download-list",
+      "FileName": "download-list.img",
+      "Sha256": "e2ce92521308129e172915d0acd26d44dfe8f9d1ac2fb10f4882c46dbf38198a",
+      "SizeBytes": 136
+    },
+    {
+      "Name": "1",
+      "FileName": "1.img",
+      "Sha256": "68c8f326d8aacf00dbae44cd46399a4f350a7f95d1dd03b116dfefeb23f0ddb8",
+      "SizeBytes": 432
+    },
+    {
+      "Name": "userdata",
+      "FileName": "userdata.img",
+      "Sha256": "d5d37ff13b317253aa3fe7fa65da31cf98671736206eac27af54ac579daf83c4",
+      "SizeBytes": 1669317236
+    },
+    {
+      "Name": "cache",
+      "FileName": "cache.img",
+      "Sha256": "94eab4b1bb22d68a4894547d4cc837cc6e3eb2b0355ac249a6d914394d0a8332",
+      "SizeBytes": 78044
+    },
+    {
+      "Name": "1",
+      "FileName": "1.img",
+      "Sha256": "73036fdb4a77df9819aad8c792011e5031025d1e1edaef84a79e69ff340f2cad",
+      "SizeBytes": 432
+    }
+  ]
+}

@@ -1,0 +1,481 @@
+﻿Build started 6/22/2026 1:42:36 PM.
+Test run for C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\BACKRabbit.Protocol.Firehose.Tests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.3.1+6b60a9e56a (64-bit .NET 8.0.28)
+[xUnit.net 00:00:00.05]   Discovering: BACKRabbit.Protocol.Firehose.Tests
+[xUnit.net 00:00:00.08]   Discovered:  BACKRabbit.Protocol.Firehose.Tests
+[xUnit.net 00:00:00.08]   Starting:    BACKRabbit.Protocol.Firehose.Tests
+  [WIPE] Erasing userdata partition...
+  [WIPE] Erase complete. Reading back for verification...
+  [WIPE] ? VERIFICATION FAILED - sector 5 has non-zero data.
+?? FIREHOSE DRY-RUN MODE ENABLED - NO FLASHING WILL OCCUR
+   All diagnosis, detection, and verification will run normally.
+   Write/erase operations will be logged but skipped.
+[0/7] Ensuring device is in Download Mode (button-guided if needed)...
+  [DRY-RUN] [WIPE] Would erase userdata partition at block level.
+  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.
+  [WIPE] Erasing userdata partition...
+  [WIPE] Erase complete. Reading back for verification...
+  [WIPE] ? Wiped and verified - 100 sectors confirmed zero.
+  [WIPE] CONFIRMATION FAILED. Userdata NOT erased.
+?? Device not in Download Mode and --skip-dl-mode-check specified.
+   Cannot proceed without Download Mode. Aborting.
+?? SAMSUNG Z FOLD 7 DOWNLOAD MODE - GUARANTEED METHOD:
+?? CRITICAL: YOUR DEVICE MUST BE FULLY POWERED OFF FIRST
+     Hold Power + VolDown for 15+ seconds until screen goes black
+     WAIT 2 SECONDS after black screen (ensures full power off)
+? BUTTON COMBO (USE BOTH HANDS IF NEEDED):
+    [LEFT HAND]  Press and HOLD Volume Down
+    [RIGHT HAND] Press and HOLD Side Button (Power)  +  Volume Up
+    ?? ALL THREE BUTTONS SIMULTANEOUSLY - SQUEEZE FIRMLY
+?? HOLD FOR 8-12 SECONDS - DO NOT RELEASE EARLY
+     You WILL feel vibration at ~2s (ignore - keep holding)
+     Screen WILL flash briefly at ~5s (ignore - keep holding)
+     RELEASE ONLY when you see CLEAR, STABLE TEXT:
+          'Downloading...'  OR  'Odin Mode'  OR  'Downloading... Do not turn off target'
+?? ABSOLUTELY NO WIPE REQUIRED - THIS IS PURE BOOTLOADER ACCESS
+?? USE ORIGINAL SAMSUNG USB-C CABLE IN USB 3.0+ PORT (NO HUBS)
+? Attempt 1/3: Press ENTER when you see 'Downloading...' screen...
+?? FIREHOSE DRY-RUN MODE ENABLED - NO FLASHING WILL OCCUR
+   All diagnosis, detection, and verification will run normally.
+   Write/erase operations will be logged but skipped.
+[0/7] Ensuring device is in Download Mode (button-guided if needed)...
+  [SKIPPED] --skip-dl-mode-check specified - assuming device is already in Download Mode
+[1/7] Verifying firmware backup...
+  Warning: Missing critical partitions: boot.img, init_boot.img, vbmeta.img, vbmeta_a.img
+[2/7] Diagnosing partitions (full-GPT audit)...
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseConfigurationTests.DefaultsToUfs [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaPacketTests.Parse_TooShort_Throws [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseDeviceDetectorTests.EdlDeviceInfo_IsEdl_DetectsCorrectly [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.GptPartitionEntryTests.ToString_ReturnsFormatted [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseDeviceDetectorTests.EdlProductIds_Contains9008 [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_NullSoc_FallsBackToGeneric [9 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaStateMachineTests.InvalidTransition_Throws [10 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_Lookup_ReturnsCorrectFuseCount_SDM845 [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_UnknownSoc_FallsBackToGeneric [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaChipInfoTests.FromHelloRequest_UnfusedDevice [12 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.FuseDefinition_BitNumbers_InRange [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.GetSocModel_KnownMsmIds_ReturnCorrectModel [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_HasEntries_ForKnownSocs_MSM8937 [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.GetSocModel_UnknownMsmId_ReturnsNull [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_HasEntries_ForKnownSocs_SM8550 [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.Database_HasEntries_ForKnownSocs_SDM845 [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaChipInfoTests.FromHelloRequest_FusedDevice [3 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.QFuseDatabaseTests.FuseDefinition_Addresses_AreValidHex [1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.LoaderDatabaseTests.FromFile_ParsesCorrectly [5 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.WipeDataTests.WipeData_VerificationFailure_AbortsRescue [23 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaStateMachineTests.ValidTransitions_ProceedWithoutError [11 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.WipeDataTests.WipeData_DryRun_ZeroEraseCalls [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseConfigurationTests.ToXml_GeneratesValidXml [14 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.WipeDataTests.WipeData_WithConfirmation_ErasesUserdata [1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.SaharaPacketTests.Serialize_RoundTrip_PreservesData [18 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_RawGarbage_StoredAsLog [27 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.WipeDataTests.WipeData_WrongConfirmation_AbortsWipe [2 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.WipeDataTests.WipeData_WithoutFlag_NoErase [4 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_WithPartitionNameAttribute_ExtractsOffsets [9 ms]
+?? Device not in Download Mode and --skip-dl-mode-check specified.
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_AckResponse_DetectsAck [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_MixedFragments_PreservesAck [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_SizeInKb_ConvertsToSectors [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_WithNameAttribute_ExtractsOffsets [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_CaseInsensitiveAttributes_Accepted [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_GptDump_LastSector_ComputesSectors [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_NakResponse_DetectsNak [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.FirehoseResponseTests.Parse_MixedLogAndResponse_ExtractsAll [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_SkipInteractive_NoAdb_ReturnsFalse [40 ms]
+   Cannot proceed without Download Mode. Aborting.
+  Full-GPT audit: 5 partitions, 2 match, 3 mismatch, 0 no stock comparison
+  [STOCK-VERIFY] ? HASH MISMATCH for 'boot_a':
+       Expected (manifest): f87007e3003d224b.
+       Actual   (file):    9e7f92d82582761f.
+       POSSIBLE TAMPERED FIRMWARE - WRITE REFUSED.
+  [STOCK-VERIFY] ? Stock integrity verified for 'boot_a'.
+  [SPARSE] boot_a: Writing 3 differing sectors...
+  [SPARSE] boot_a: REFUSED - stock integrity verification failed
+  [STOCK-VERIFY] ? Stock integrity verified for 'boot_b'.
+  [SPARSE] boot_b: Writing 1 differing sectors...
+  [SPARSE] boot_a: 3 sectors written, verifying...
+  [SPARSE] boot_b: 1 sectors written, verifying...
+  [SPARSE] boot_b: VERIFIED - all 1 sectors match stock
+  [SPARSE] boot_a: VERIFIED - all 3 sectors match stock
+  [SPARSE] Summary: 1 repaired, 0 failed, 0 skipped, 3 total sectors written
+  [SPARSE] Summary: 1 repaired, 0 failed, 1 skipped, 1 total sectors written
+?? Device not in Download Mode and --skip-dl-mode-check specified.
+   Cannot proceed without Download Mode. Aborting.
+  [SPARSE] vendor_a: NO STOCK IMAGE - SKIPPED
+  [SPARSE] Summary: 0 repaired, 0 failed, 1 skipped, 0 total sectors written
+[xUnit.net 00:00:00.19]       Assert.Throws() Failure: No exception was thrown
+dotnet : [xUnit.net 00:00:00.19]     BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloa
+dModeAsync_Cancellation_ThrowsOperationCanceledException [FAIL]
+At line:1 char:38
++ ... BACKRabbit; dotnet test BACKRabbit.Protocol.Firehose.Tests --no-build ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...xception [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[xUnit.net 00:00:00.19]       Expected: typeof(System.OperationCanceledException)
+[xUnit.net 00:00:00.19]       Stack Trace:
+[xUnit.net 00:00:00.19]            at BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_Cancellation_ThrowsOperationCanceledException()
+[xUnit.net 00:00:00.19]         --- End of stack trace from previous location ---
+  [SPARSE] sec: BLOCKLISTED - SKIPPED
+  [SPARSE] Summary: 0 repaired, 0 failed, 1 skipped, 0 total sectors written
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_SkipInteractive_DisconnectedAdb_ReturnsFalse [10 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.SparseWriteTests.SparseWrite_OnlyDifferingSectorsWritten [69 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.FullGptAuditTests.FullGptAudit_NoStockComparison_Flagged [68 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.StockOnlyWriteTests.StockOnlyWrite_TamperedStockFile_Refused [69 ms]
+  Failed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_Cancellation_ThrowsOperationCanceledException [12 ms]
+  Error Message:
+   Assert.Throws() Failure: No exception was thrown
+Expected: typeof(System.OperationCanceledException)
+  Stack Trace:
+     at BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.TryRebootToDownloadModeAsync_Cancellation_ThrowsOperationCanceledException()
+--- End of stack trace from previous location ---
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.SparseWriteTests.SparseWrite_StockImageNotFound_GracefulSkip [3 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.SparseWriteTests.SparseWrite_BlocklistEnforced_NoWriteWithoutForce [2 ms]
+?? Device not in Download Mode and --skip-dl-mode-check specified.
+   Cannot proceed without Download Mode. Aborting.
+  Done. 13 critical partitions analyzed. Verdict: Tampered
+[3/7] Auditing QFuses...
+  Done. 0/10 fuses blown.
+[4/7] Restoring tampered partitions (sparse repair)...
+  [SPARSE] Full-GPT audit found 3 mismatched partition(s)
+  [DRY-RUN] [SPARSE] boot_a: Would write 2 sectors
+    [DRY-RUN] Would write sector 1 (offset 512)
+    [DRY-RUN] Would write sector 3 (offset 1536)
+  [DRY-RUN] [SPARSE] boot_b: Would write 1 sectors
+    [DRY-RUN] Would write sector 4 (offset 2048)
+  [DRY-RUN] [SPARSE] system_a: Would write 1 sectors
+    [DRY-RUN] Would write sector 5 (offset 2560)
+  [SPARSE] Summary: 3 repaired, 0 failed, 0 skipped, 0 total sectors written
+  [DRY-RUN] Sparse repair planned: 0 sectors across 3 partition(s)
+  [DRY-RUN] Would full-restore 2 tampered partition(s) as fallback: boot_a, boot_b
+  [STOCK-VERIFY] ? Stock integrity verified for 'system_a'.
+  [SPARSE] system_a: Writing 2 differing sectors...
+  [SPARSE] system_a: 2 sectors written, verifying...
+  [SPARSE] system_a: VERIFIED - all 2 sectors match stock
+  [SPARSE] Summary: 1 repaired, 0 failed, 0 skipped, 2 total sectors written
+    [DRY-RUN] Would flash boot_a from C:\Users\jp\AppData\Local\Temp\backrabbit_integration_9e58d1714b67468784a37eb1df5c54ee\boot_a.img (51,200 bytes)
+    [DRY-RUN] Would flash boot_b from C:\Users\jp\AppData\Local\Temp\backrabbit_integration_9e58d1714b67468784a37eb1df5c54ee\boot_b.img (51,200 bytes)
+[4c/7] Checking --wipe-data flag...
+  [DRY-RUN] --wipe-data set. Would erase userdata partition at block level.
+  [DRY-RUN] Would verify post-erase readback shows all zeros.
+  [DRY-RUN] [WIPE] Would erase userdata partition at block level.
+  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.
+[5/7] Removing Magisk...
+  No Magisk detected in boot partitions.
+[6/7] Final verification...
+  [DRY-RUN] Would re-run FullGptAudit to confirm all partitions match stock.
+  [DRY-RUN] Skipping post-rescue verification (no writes were performed).
+[7/7] Generating rescue report...
+=== BACKRabbit Rescue Report ===
+Device: 008600E1  SoC: SDM845  Storage: ufs
+Timestamp: 2026-06-22 18:42:37 UTC
+Verdict: Tampered
+--- Partitions (1) ---
+Name                 Status       Anomalies                     
+--------------------------------------------------------------
+devinfo              Tampered     bootloader lock bit set       
+--- QFuse Audit ---
+Blown: 3/8
+  SECURE_BOOT_EN: Secure boot locked
+--- Recommendations ---
+  * Restore devinfo from backup
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.SynchronousWrapper_ReturnsSameAsAsync [15 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.MaxButtonAttempts_Is3 [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.DownloadModeTimeout_Is90Seconds [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.SparseWriteTests.SparseWrite_VerificationAfterWrite_RepairsConfirmed [19 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.RescueReport_ToJson_ProducesValidJson [97 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.RescueReport_PrintSummary_DoesNotThrow [3 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.PartitionDiagnosis_Statuses_AreCorrect [< 1 ms]
+  [DRY-RUN] [SPARSE] boot_a: Would write 2 sectors
+    [DRY-RUN] Would write sector 1 (offset 512)
+    [DRY-RUN] Would write sector 3 (offset 1536)
+  [DRY-RUN] [SPARSE] system_a: Would write 3 sectors
+    [DRY-RUN] Would write sector 4 (offset 2048)
+    [DRY-RUN] Would write sector 5 (offset 2560)
+    [DRY-RUN] Would write sector 6 (offset 3072)
+  [SPARSE] Summary: 2 repaired, 0 failed, 0 skipped, 0 total sectors written
+?? Device not in Download Mode and --skip-dl-mode-check specified.
+   Cannot proceed without Download Mode. Aborting.
+  Report saved to: C:\Users\jp\AppData\Local\Temp\backrabbit_integration_9e58d1714b67468784a37eb1df5c54ee\rescue-report.json
+  Report SHA256: 0c3f437390a5ee3a952f0f51f378ed4090dde90f74f222e170f37878548a3555
+=== BACKRabbit Rescue Report ===
+?? DRY-RUN MODE - No partitions were modified
+Device: 008600E1  SoC: SDM845  Storage: ufs
+Timestamp: 2026-06-22 18:42:37 UTC
+Verdict: Tampered
+--- Partitions (13) ---
+Name                 Status       Anomalies                     
+--------------------------------------------------------------
+devinfo              Normal       devinfo magic bytes corrupted 
+persist              Normal                                     
+frp                  Missing      Partition not readable via Firehose
+misc                 Missing      Partition not readable via Firehose
+sec                  Missing      Partition not readable via Firehose
+boot_a               Tampered     Boot image analysis failed: No valid boot image header found
+boot_b               Tampered     Boot image analysis failed: No valid boot image header found
+vbmeta_a             Missing      Partition not readable via Firehose
+vbmeta_b             Missing      Partition not readable via Firehose
+dtbo_a               Missing      Partition not readable via Firehose
+dtbo_b               Missing      Partition not readable via Firehose
+init_boot_a          Missing      Partition not readable via Firehose
+init_boot_b          Missing      Partition not readable via Firehose
+--- QFuse Audit ---
+Blown: 0/10
+--- Restore Actions (2) ---
+  boot_a: DryRunSkipped (verified=False)
+  boot_b: DryRunSkipped (verified=False)
+--- Recommendations ---
+  * frp not found - may need stock firmware reflash
+  * misc not found - may need stock firmware reflash
+  * sec not found - may need stock firmware reflash
+  * vbmeta_a not found - may need stock firmware reflash
+  * vbmeta_b not found - may need stock firmware reflash
+  * dtbo_a not found - may need stock firmware reflash
+  * dtbo_b not found - may need stock firmware reflash
+  * init_boot_a not found - may need stock firmware reflash
+  * init_boot_b not found - may need stock firmware reflash
+[DRY-RUN] Would reset device to system
+?? DRY-RUN COMPLETE - No partitions were modified.
+?? FIREHOSE DRY-RUN MODE ENABLED - NO FLASHING WILL OCCUR
+   All diagnosis, detection, and verification will run normally.
+   Write/erase operations will be logged but skipped.
+[0/7] Ensuring device is in Download Mode (button-guided if needed)...
+  [SKIPPED] --skip-dl-mode-check specified - assuming device is already in Download Mode
+[1/7] Verifying firmware backup...
+  Warning: Missing critical partitions: boot.img, init_boot.img, vbmeta.img, vbmeta_a.img
+[2/7] Diagnosing partitions (full-GPT audit)...
+  Full-GPT audit: 5 partitions, 2 match, 3 mismatch, 0 no stock comparison
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.RestoreAction_Verified_TrueWhenHashesMatch [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.QFuseStatus_Blown_ImplicationReturned [< 1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RescueReportTests.MagiskRemovalResult_MagiskFound_TrueWhenArtifactsPresent [1 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.RebootDownloadManagerTests.IsDeviceInDownloadMode_NoDevices_ReturnsFalse [19 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.SparseWriteTests.SparseWrite_DryRun_ZeroWriteCalls [11 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.IntegrationTests.FullRescue_DryRun_GeneratesCompleteReport [116 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.FullGptAuditTests.FullGptAudit_MismatchedPartition_Flagged [59 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.FullGptAuditTests.FullGptAudit_AllPartitionsChecked [35 ms]
+?? FIREHOSE DRY-RUN MODE ENABLED - NO FLASHING WILL OCCUR
+   All diagnosis, detection, and verification will run normally.
+   Write/erase operations will be logged but skipped.
+[0/7] Ensuring device is in Download Mode (button-guided if needed)...
+  [SKIPPED] --skip-dl-mode-check specified - assuming device is already in Download Mode
+[1/7] Verifying firmware backup...
+  Warning: Missing critical partitions: boot.img, init_boot.img, vbmeta.img, vbmeta_a.img
+[2/7] Diagnosing partitions (full-GPT audit)...
+  Done. 13 critical partitions analyzed. Verdict: Tampered
+[3/7] Auditing QFuses...
+  Done. 0/10 fuses blown.
+[4/7] Restoring tampered partitions (sparse repair)...
+  [SPARSE] Full-GPT audit found 3 mismatched partition(s)
+  [DRY-RUN] [SPARSE] boot_a: Would write 2 sectors
+    [DRY-RUN] Would write sector 1 (offset 512)
+    [DRY-RUN] Would write sector 3 (offset 1536)
+  [DRY-RUN] [SPARSE] boot_b: Would write 1 sectors
+    [DRY-RUN] Would write sector 4 (offset 2048)
+  [DRY-RUN] [SPARSE] system_a: Would write 1 sectors
+    [DRY-RUN] Would write sector 5 (offset 2560)
+  [SPARSE] Summary: 3 repaired, 0 failed, 0 skipped, 0 total sectors written
+  [DRY-RUN] Sparse repair planned: 0 sectors across 3 partition(s)
+  [DRY-RUN] Would full-restore 2 tampered partition(s) as fallback: boot_a, boot_b
+    [DRY-RUN] Would flash boot_a from C:\Users\jp\AppData\Local\Temp\backrabbit_integration_23f6e508fab14e2bba911f6fd8c758c7\boot_a.img (51,200 bytes)
+    [DRY-RUN] Would flash boot_b from C:\Users\jp\AppData\Local\Temp\backrabbit_integration_23f6e508fab14e2bba911f6fd8c758c7\boot_b.img (51,200 bytes)
+[4c/7] Checking --wipe-data flag...
+  [DRY-RUN] --wipe-data set. Would erase userdata partition at block level.
+  [DRY-RUN] Would verify post-erase readback shows all zeros.
+  [DRY-RUN] [WIPE] Would erase userdata partition at block level.
+  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.
+[5/7] Removing Magisk...
+  No Magisk detected in boot partitions.
+[6/7] Final verification...
+  [DRY-RUN] Would re-run FullGptAudit to confirm all partitions match stock.
+  [DRY-RUN] Skipping post-rescue verification (no writes were performed).
+[7/7] Generating rescue report...
+  Report saved to: C:\Users\jp\AppData\Local\Temp\backrabbit_integration_23f6e508fab14e2bba911f6fd8c758c7\rescue-report.json
+  Report SHA256: 8e2c6130f14e01f1bc1bfd7fc1e56fb189f3c6e580980803e994b9f498195f71
+=== BACKRabbit Rescue Report ===
+?? DRY-RUN MODE - No partitions were modified
+Device: 008600E1  SoC: SDM845  Storage: ufs
+Timestamp: 2026-06-22 18:42:37 UTC
+Verdict: Tampered
+--- Partitions (13) ---
+Name                 Status       Anomalies                     
+--------------------------------------------------------------
+devinfo              Normal       devinfo magic bytes corrupted 
+persist              Normal                                     
+frp                  Missing      Partition not readable via Firehose
+misc                 Missing      Partition not readable via Firehose
+sec                  Missing      Partition not readable via Firehose
+boot_a               Tampered     Boot image analysis failed: No valid boot image header found
+boot_b               Tampered     Boot image analysis failed: No valid boot image header found
+vbmeta_a             Missing      Partition not readable via Firehose
+vbmeta_b             Missing      Partition not readable via Firehose
+dtbo_a               Missing      Partition not readable via Firehose
+dtbo_b               Missing      Partition not readable via Firehose
+init_boot_a          Missing      Partition not readable via Firehose
+init_boot_b          Missing      Partition not readable via Firehose
+--- QFuse Audit ---
+Blown: 0/10
+--- Restore Actions (2) ---
+  boot_a: DryRunSkipped (verified=False)
+  boot_b: DryRunSkipped (verified=False)
+--- Recommendations ---
+  * frp not found - may need stock firmware reflash
+  * misc not found - may need stock firmware reflash
+  * sec not found - may need stock firmware reflash
+  * vbmeta_a not found - may need stock firmware reflash
+  * vbmeta_b not found - may need stock firmware reflash
+  * dtbo_a not found - may need stock firmware reflash
+  * dtbo_b not found - may need stock firmware reflash
+  * init_boot_a not found - may need stock firmware reflash
+  * init_boot_b not found - may need stock firmware reflash
+[DRY-RUN] Would reset device to system
+?? DRY-RUN COMPLETE - No partitions were modified.
+  Full-GPT audit: 6 partitions, 2 match, 1 mismatch, 3 no stock comparison
+[0/7] Ensuring device is in Download Mode (button-guided if needed)...
+  [SKIPPED] --skip-dl-mode-check specified - assuming device is already in Download Mode
+[1/7] Verifying firmware backup...
+  Warning: Missing critical partitions: boot.img, init_boot.img, vbmeta.img, vbmeta_a.img
+[2/7] Diagnosing partitions (full-GPT audit)...
+  Full-GPT audit: 5 partitions, 2 match, 3 mismatch, 0 no stock comparison
+  Done. 13 critical partitions analyzed. Verdict: Tampered
+[3/7] Auditing QFuses...
+  Done. 1/10 fuses blown.
+[4/7] Restoring tampered partitions (sparse repair)...
+  [SPARSE] Full-GPT audit found 1 mismatched partition(s)
+  [DRY-RUN] [SPARSE] boot_a: Would write 1 sectors
+    [DRY-RUN] Would write sector 1 (offset 512)
+  [SPARSE] Summary: 1 repaired, 0 failed, 0 skipped, 0 total sectors written
+  [DRY-RUN] Sparse repair planned: 0 sectors across 1 partition(s)
+  [DRY-RUN] Would full-restore 1 tampered partition(s) as fallback: boot_a
+    [DRY-RUN] Would flash boot_a from C:\Users\jp\AppData\Local\Temp\backrabbit_audit_test_4352376a8c344059ac0664258e42b7df\boot_a.img (65,536 bytes)
+[4c/7] Checking --wipe-data flag...
+  userdata NOT erased (--wipe-data not set).
+  Partitions with NO_STOCK_COMPARISON remain on device.
+[5/7] Removing Magisk...
+  No Magisk detected in boot partitions.
+[6/7] Final verification...
+  [DRY-RUN] Would re-run FullGptAudit to confirm all partitions match stock.
+  [DRY-RUN] Skipping post-rescue verification (no writes were performed).
+[7/7] Generating rescue report...
+  Report saved to: C:\Users\jp\AppData\Local\Temp\backrabbit_audit_test_4352376a8c344059ac0664258e42b7df\rescue-report.json
+  Report SHA256: f5496b4cd68e1f7a9bf819dbeee2bf760b4794b1f0089b9010847a4464c03f05
+=== BACKRabbit Rescue Report ===
+?? DRY-RUN MODE - No partitions were modified
+Device: 008600E1  SoC: SDM845  Storage: ufs
+Timestamp: 2026-06-22 18:42:37 UTC
+Verdict: Tampered
+--- Partitions (13) ---
+Name                 Status       Anomalies                     
+--------------------------------------------------------------
+devinfo              Normal                                     
+persist              Normal                                     
+frp                  Missing      Partition not readable via Firehose
+misc                 Missing      Partition not readable via Firehose
+sec                  Missing      Partition not readable via Firehose
+boot_a               Tampered     Boot image analysis failed: No valid boot image header found
+boot_b               Normal       Boot image analysis failed: No valid boot image header found
+vbmeta_a             Normal       No AVB footer found           
+vbmeta_b             Missing      Partition not readable via Firehose
+dtbo_a               Missing      Partition not readable via Firehose
+dtbo_b               Missing      Partition not readable via Firehose
+init_boot_a          Missing      Partition not readable via Firehose
+init_boot_b          Missing      Partition not readable via Firehose
+--- QFuse Audit ---
+Blown: 1/10
+  OEM_SECURE_BOOT1_AUTH_EN: Device will only boot signed images. Cannot load unsigned code.
+--- Restore Actions (1) ---
+  boot_a: DryRunSkipped (verified=False)
+--- Recommendations ---
+  * frp not found - may need stock firmware reflash
+  * misc not found - may need stock firmware reflash
+  * sec not found - may need stock firmware reflash
+  * vbmeta_b not found - may need stock firmware reflash
+  * dtbo_a not found - may need stock firmware reflash
+  * dtbo_b not found - may need stock firmware reflash
+  * init_boot_a not found - may need stock firmware reflash
+  * init_boot_b not found - may need stock firmware reflash
+[DRY-RUN] Would reset device to system
+?? DRY-RUN COMPLETE - No partitions were modified.
+  Done. 13 critical partitions analyzed. Verdict: Tampered
+[3/7] Auditing QFuses...
+  Done. 0/10 fuses blown.
+[4/7] Restoring tampered partitions (sparse repair)...
+  [SPARSE] Full-GPT audit found 3 mismatched partition(s)
+  [STOCK-VERIFY] ? Stock integrity verified for 'boot_a'.
+  [SPARSE] boot_a: Writing 2 differing sectors...
+  [SPARSE] boot_a: 2 sectors written, verifying...
+  [SPARSE] boot_a: VERIFIED - all 2 sectors match stock
+  [STOCK-VERIFY] ? Stock integrity verified for 'boot_b'.
+  [SPARSE] boot_b: Writing 1 differing sectors...
+  [SPARSE] boot_b: 1 sectors written, verifying...
+  [SPARSE] boot_b: VERIFIED - all 1 sectors match stock
+  [STOCK-VERIFY] ? Stock integrity verified for 'system_a'.
+  [SPARSE] system_a: Writing 1 differing sectors...
+  [SPARSE] system_a: 1 sectors written, verifying...
+  [SPARSE] system_a: VERIFIED - all 1 sectors match stock
+  [SPARSE] Summary: 3 repaired, 0 failed, 0 skipped, 4 total sectors written
+  [SPARSE] Done. 3 repaired, 4 sectors written.
+  boot_a: erasing...
+  boot_a: writing 51,200 bytes...
+  boot_a: verifying...
+  boot_a: OK (hash matches)
+  boot_b: erasing...
+  boot_b: writing 51,200 bytes...
+  boot_b: verifying...
+  boot_b: OK (hash matches)
+  Done. 2 full-restore actions taken.
+[4c/7] Checking --wipe-data flag...
+  userdata NOT erased (--wipe-data not set).
+  Partitions with NO_STOCK_COMPARISON remain on device.
+[5/7] Removing Magisk...
+  No Magisk detected in boot partitions.
+[6/7] Final verification...
+  Post-rescue GPT audit: 5 partitions, 5 match, 0 mismatch
+  ? All 3 previously-mismatched partition(s) now match stock.
+  Post-rescue verdict: FullyRecovered
+[7/7] Generating rescue report...
+  Report saved to: C:\Users\jp\AppData\Local\Temp\backrabbit_integration_e2b41b18423f4c5283342de122bce0f0\rescue-report.json
+  Report SHA256: dbade919b3acb942154720f7f2816bb9fe63d0911f8ac10d3f9fc6a045a81b1b
+=== BACKRabbit Rescue Report ===
+Device: 008600E1  SoC: SDM845  Storage: ufs
+Timestamp: 2026-06-22 18:42:37 UTC
+Verdict: FullyRecovered
+--- Partitions (13) ---
+Name                 Status       Anomalies                     
+--------------------------------------------------------------
+devinfo              Normal       devinfo magic bytes corrupted 
+persist              Normal                                     
+frp                  Missing      Partition not readable via Firehose
+misc                 Missing      Partition not readable via Firehose
+sec                  Missing      Partition not readable via Firehose
+boot_a               Normal (restored) Restored successfully         
+boot_b               Normal (restored) Restored successfully         
+vbmeta_a             Missing      Partition not readable via Firehose
+vbmeta_b             Missing      Partition not readable via Firehose
+dtbo_a               Missing      Partition not readable via Firehose
+dtbo_b               Missing      Partition not readable via Firehose
+init_boot_a          Missing      Partition not readable via Firehose
+init_boot_b          Missing      Partition not readable via Firehose
+--- QFuse Audit ---
+Blown: 0/10
+--- Restore Actions (2) ---
+  boot_a: Flashed (verified=True)
+  boot_b: Flashed (verified=True)
+--- Recommendations ---
+  * frp not found - may need stock firmware reflash
+  * misc not found - may need stock firmware reflash
+  * sec not found - may need stock firmware reflash
+  * vbmeta_a not found - may need stock firmware reflash
+  * vbmeta_b not found - may need stock firmware reflash
+  * dtbo_a not found - may need stock firmware reflash
+  * dtbo_b not found - may need stock firmware reflash
+  * init_boot_a not found - may need stock firmware reflash
+  * init_boot_b not found - may need stock firmware reflash
+Resetting device to system...
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.IntegrationTests.FullRescue_WithWipeData_SkipsMagiskRemoval [80 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.FullGptAuditTests.DryRun_FullGptAudit_RunsButNoDestructiveCalls [75 ms]
+  Passed BACKRabbit.Protocol.Firehose.Tests.Rescue.IntegrationTests.FullRescue_WithSparseRepair_AllPartitionsNormalized [109 ms]
+     1>Project "C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\BACKRabbit.Protocol.Firehose.Tests.csproj" on node 1 (VSTest target(s)).
+     1>_VSTestConsole:
+         MSB4181: The "VSTestTask" task returned false but did not log an error.
+     1>Done Building Project "C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\BACKRabbit.Protocol.Firehose.Tests.csproj" (VSTest target(s)) -- FAILED.

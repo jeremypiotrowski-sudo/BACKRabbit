@@ -1,0 +1,31 @@
+﻿ed52cee|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-22 02:37:52 -0500|Sub-step E: Stock-only write enforcement (VerifyStockIntegrity + manifest hash gate) + 1 critical security test (68 total, 67 pass)
+ad5f175|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-22 02:22:12 -0500|Sub-step D: Phase integration (Phase 6 post-rescue audit + Phase 5 wipe-skip + verdict from all evidence) + 3 integration tests (67 total, 66 pass)
+ffec0cd|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-22 02:07:12 -0500|Sub-step C: --wipe-data capability + 5 new tests (64 total, 63 pass)
+3b3a316|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-22 01:43:03 -0500|Sub-step B: Sparse write repair implementation + 5 new tests (59 total, 58 pass)
+38e8ee8|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-22 00:41:22 -0500|Sub-step A: Full-GPT audit test verification - 4 new tests (54 total, 53 pass)
+4cda7bd|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 19:51:07 -0500|feat: firmware import command + Loaders directory + FUS probe script
+13e30b9|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 19:14:33 -0500|feat: automated Download Mode reboot + firmware sourcing enhancements
+5ec4f78|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 11:25:55 -0500|docs: Firehose knowledge base ΓÇö OPERATIONS, FAILURES, BUILD, DESIGN, HEALTH_CHECK (5 docs, ~870 lines)
+9d328fe|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 11:08:42 -0500|fix(magiskcore): Ticket 3 ΓÇö DTB file offset (not memory addr), vendor boot synthetic test with VNDRBOOT magic + compressed ramdisk, decompressed content comparison
+d3daa48|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:57:24 -0500|fix(magiskcore): Align() divide-by-zero guard + GetHeaderSize() MinSafeHeaderSize fallback for V0-V2 headers
+31c6898|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:34:31 -0500|BACKRabbit: WP-5 ΓÇö README with TUI documentation, FUS troubleshooting, project structure
+de00325|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:33:41 -0500|BACKRabbit.Protocol.Firehose.Rescue: WP-4 ΓÇö Phase 0 backup verification + renumber phases to 0-6/7
+bfb07e0|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:32:16 -0500|BACKRabbit: WP-1 through WP-3 ΓÇö FUS integration tests, IDeviceDetector interface, TUI IMEI support + auth error recovery
+32c8c5e|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:28:53 -0500|BACKRabbit.Firmware: Samsung FUS auth token acquisition (WP-0) ΓÇö MD5 identity token + bearer token endpoint, IMEI support, cached 25min
+4ca969c|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:08:07 -0500|BACKRabbit.CLI: wire FirmwareTui into Program.cs + firehose rescue full Phase 0 firmware sourcing
+f441c18|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:07:54 -0500|BACKRabbit.CLI.TUI: FirmwareTui ΓÇö interactive Spectre.Console firmware sourcing wizard
+5f2a12e|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 10:07:42 -0500|BACKRabbit.Firmware: FirmwareSourcer ΓÇö Samsung FUS download, decrypt, extract
+d320aed|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:30:17 -0500|BACKRabbit.Protocol.Firehose.Tests: Rescue report + QFuse database tests
+44cd781|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:30:04 -0500|BACKRabbit.CLI: firehose rescue diagnose|restore|fuses|unmagisk|full
+e320cbc|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:29:52 -0500|BACKRabbit.Protocol.Firehose.Rescue: MagiskRemover + RescueOrchestrator
+3e58d71|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:29:40 -0500|BACKRabbit.Protocol.Firehose.Rescue: PartitionDiagnostics + PartitionRestorer
+f65cd23|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:29:28 -0500|BACKRabbit.Protocol.Firehose.Rescue: RescueReport data model + QFuseAuditor
+0e1bbcf|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:03:20 -0500|BACKRabbit: GitHub Actions CI ΓÇö build, test, CodeQL
+8655501|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:02:53 -0500|BACKRabbit.Protocol.Firehose.Tests: FirehoseResponse + FirehoseClient unit tests
+2597714|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:02:27 -0500|BACKRabbit.CLI: firehose detect, info, printgpt, dump, flash, erase, reset, nop, storageinfo
+3a71bc5|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 09:01:58 -0500|BACKRabbit.Protocol.Firehose: complete Firehose XML command set + cross-platform WinUsbTransport
+83b80f2|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 08:07:26 -0500|BACKRabbit.Protocol.Firehose: Sahara + Firehose protocol implementation with passing build
+68020d2|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 08:00:23 -0500|BACKRabbit: add README, LICENSE (MIT), .gitattributes
+be6a19a|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-21 07:26:00 -0500|BACKRabbit: remove dead root-level stubs, test artifacts, Python cache from tracking (knowledge-base preserved)
+a4f788a|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-20 23:55:53 -0500|BACKRabbit: initial commit - .gitignore, all source, knowledge-base, downloads structure (no large binaries)
+0ff5b0f|jeremypiotrowski-sudo|jeremypiotrowski@gmail.com|2026-06-20 23:21:07 -0500|first commit

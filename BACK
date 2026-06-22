@@ -1,0 +1,217 @@
+using BACKRabbit.Protocol.Firehose.Rescue;
+
+namespace BACKRabbit.Protocol.Firehose.Tests.Rescue;
+
+/// <summary>
+/// Tests for the sparse write repair feature (Sub-step B).
+/// CONVENTION: startSector is a SECTOR NUMBER (not byte offset).
+/// DifferingSectorAddresses stores byte offsets; we divide by 512 to get sector numbers.
+/// </summary>
+public class SparseWriteTests : IDisposable
+{
+    private readonly string _testBackupDir;
+
+    public SparseWriteTests()
+    {
+        _testBackupDir = Path.Combine(Path.GetTempPath(), $"backrabbit_sparse_test_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(_testBackupDir);
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(_testBackupDir))
+            Directory.Delete(_testBackupDir, recursive: true);
+    }
+
+    private static byte[] CreateSectorData(int sectorCount, byte fillValue = 0)
+    {
+        var data = new byte[sectorCount * 512];
+        for (int i = 0; i < data.Length; i++) data[i] = fillValue;
+        return data;
+    }
+
+    private void CreateBackupFile(string name, byte[] data)
+    {
+        File.WriteAllBytes(Path.Combine(_testBackupDir, $"{name}.img"), data);
+    }
+
+    private static FullGptAuditResult CreateAuditWith3MismatchedSectors(string partitionName = "boot_a")
+    {
+        return new FullGptAuditResult
+        {
+            Entries = new List<GptPartitionAuditEntry>
+            {
+                new()
+                {
+                    PartitionName = partitionName,
+                    Status = GptAuditStatus.Mismatch,
+                    PartitionSize = 100 * 512,
+                    DifferingSectorCount = 3,
+                    DifferingSectorAddresses = new List<long> { 10 * 512, 20 * 512, 30 * 512 },
+                },
+            },
+        };
+    }
+
+    private MockFirehoseClient CreateMockClientWithBootA()
+    {
+        return new MockFirehoseClient
+        {
+            ChipInfoOverride = new SaharaChipInfo
+            {
+                Version = 2, MinVersion = 1, MaxPacketSize = 16384,
+                Mode = SaharaMode.ImageTxPending, MsmId = 0x008600E1,
+                PkHash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+                SerialNumber = "0x12345678",
+            },
+            StorageType = "ufs",
+            GptEntries = new List<GptPartitionEntry>
+            {
+                new() { Name = "boot_a", StartSector = 0, Sectors = 100 },
+            },
+            PartitionData = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["boot_a"] = CreateSectorData(100, 0xAA),
+            },
+            FuseData = new Dictionary<uint, byte[]>
+            {
+                [0x00780020] = new byte[] { 0x01, 0x00, 0x00, 0x00 },
+                [0x00780024] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+                [0x00780028] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+                [0x0078002C] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+                [0x00780030] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+                [0x00780034] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+                [0x00780038] = new byte[] { 0x00, 0x00, 0x00, 0x00 },
+            },
+        };
+    }
+
+    [Fact]
+    public async Task SparseWrite_OnlyDifferingSectorsWritten()
+    {
+        var mockClient = CreateMockClientWithBootA();
+        CreateBackupFile("boot_a", CreateSectorData(100, 0xBB));
+        var audit = CreateAuditWith3MismatchedSectors();
+        var report = new RescueReport();
+        var restorer = new PartitionRestorer(mockClient, _testBackupDir, report, force: false, dryRun: false);
+        var result = await restorer.SparseRepairAsync(audit);
+        Assert.Equal(3, mockClient.WriteBlocksCallCount);
+        var writeCalls = mockClient.WriteBlocksCalls;
+        Assert.Contains(writeCalls, c => c.Partition == "boot_a" && c.StartSector == 10);
+        Assert.Contains(writeCalls, c => c.Partition == "boot_a" && c.StartSector == 20);
+        Assert.Contains(writeCalls, c => c.Partition == "boot_a" && c.StartSector == 30);
+        Assert.All(writeCalls, c => Assert.Equal(512, c.DataLength));
+        var bootAResult = result.Partitions.Find(p => p.PartitionName == "boot_a");
+        Assert.NotNull(bootAResult);
+        Assert.Equal(3, bootAResult!.SectorsWritten);
+    }
+
+    [Fact]
+    public async Task SparseWrite_VerificationAfterWrite_RepairsConfirmed()
+    {
+        var mockClient = CreateMockClientWithBootA();
+        CreateBackupFile("boot_a", CreateSectorData(100, 0xBB));
+        var audit = CreateAuditWith3MismatchedSectors();
+        var report = new RescueReport();
+        var restorer = new PartitionRestorer(mockClient, _testBackupDir, report, force: false, dryRun: false);
+        var result = await restorer.SparseRepairAsync(audit);
+        var bootAResult = result.Partitions.Find(p => p.PartitionName == "boot_a");
+        Assert.NotNull(bootAResult);
+        Assert.Equal(SparseRepairStatus.Repaired, bootAResult!.Status);
+        Assert.Equal(3, bootAResult.SectorsWritten);
+        Assert.Equal(3, bootAResult.SectorsVerified);
+    }
+
+    [Fact]
+    public async Task SparseWrite_BlocklistEnforced_NoWriteWithoutForce()
+    {
+        var mockClient = new MockFirehoseClient
+        {
+            ChipInfoOverride = new SaharaChipInfo
+            {
+                Version = 2, MinVersion = 1, MaxPacketSize = 16384,
+                Mode = SaharaMode.ImageTxPending, MsmId = 0x008600E1,
+                PkHash = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 },
+                SerialNumber = "0x12345678",
+            },
+            StorageType = "ufs",
+            GptEntries = new List<GptPartitionEntry>
+            {
+                new() { Name = "sec", StartSector = 0, Sectors = 1 },
+            },
+            PartitionData = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["sec"] = new byte[512],
+            },
+        };
+        CreateBackupFile("sec", new byte[512]);
+        var audit = new FullGptAuditResult
+        {
+            Entries = new List<GptPartitionAuditEntry>
+            {
+                new()
+                {
+                    PartitionName = "sec",
+                    Status = GptAuditStatus.Mismatch,
+                    PartitionSize = 512,
+                    DifferingSectorCount = 1,
+                    DifferingSectorAddresses = new List<long> { 0 },
+                },
+            },
+        };
+        var report = new RescueReport();
+        var restorer = new PartitionRestorer(mockClient, _testBackupDir, report, force: false, dryRun: false);
+        var result = await restorer.SparseRepairAsync(audit);
+        Assert.Equal(0, mockClient.WriteBlocksCallCount);
+        var secResult = result.Partitions.Find(p => p.PartitionName == "sec");
+        Assert.NotNull(secResult);
+        Assert.Equal(SparseRepairStatus.Blocklisted, secResult!.Status);
+        Assert.Contains("BLOCKLISTED", secResult.ErrorMessage ?? "");
+    }
+
+    [Fact]
+    public async Task SparseWrite_DryRun_ZeroWriteCalls()
+    {
+        var mockClient = CreateMockClientWithBootA();
+        CreateBackupFile("boot_a", CreateSectorData(100, 0xBB));
+        var audit = new FullGptAuditResult
+        {
+            Entries = new List<GptPartitionAuditEntry>
+            {
+                new()
+                {
+                    PartitionName = "boot_a",
+                    Status = GptAuditStatus.Mismatch,
+                    PartitionSize = 100 * 512,
+                    DifferingSectorCount = 5,
+                    DifferingSectorAddresses = new List<long> { 5 * 512, 10 * 512, 15 * 512, 20 * 512, 25 * 512 },
+                },
+            },
+        };
+        var report = new RescueReport();
+        var restorer = new PartitionRestorer(mockClient, _testBackupDir, report, force: false, dryRun: true);
+        var result = await restorer.SparseRepairAsync(audit);
+        Assert.Equal(0, mockClient.WriteBlocksCallCount);
+        Assert.True(result.DryRun);
+        var bootAResult = result.Partitions.Find(p => p.PartitionName == "boot_a");
+        Assert.NotNull(bootAResult);
+        Assert.Equal(5, bootAResult!.SectorsWritten);
+        Assert.Equal(5, bootAResult.WrittenSectorAddresses.Count);
+    }
+
+    [Fact]
+    public async Task SparseWrite_StockImageNotFound_GracefulSkip()
+    {
+        var mockClient = CreateMockClientWithBootA();
+        var audit = CreateAuditWith3MismatchedSectors();
+        var report = new RescueReport();
+        var restorer = new PartitionRestorer(mockClient, _testBackupDir, report, force: false, dryRun: false);
+        var result = await restorer.SparseRepairAsync(audit);
+        Assert.Equal(0, mockClient.WriteBlocksCallCount);
+        var bootAResult = result.Partitions.Find(p => p.PartitionName == "boot_a");
+        Assert.NotNull(bootAResult);
+        Assert.Equal(SparseRepairStatus.Skipped, bootAResult!.Status);
+        Assert.Contains("NO STOCK IMAGE", bootAResult.ErrorMessage ?? "");
+        Assert.Equal(0, bootAResult.SectorsWritten);
+    }
+}

@@ -1,0 +1,36 @@
+﻿Build started 6/22/2026 1:32:22 PM.
+Test run for C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\BACKRabbit.Protocol.Firehose.Tests.dll (.NETCoreApp,Version=v8.0)
+A total of 1 test files matched the specified pattern.
+A fatal error was encountered. The library 'hostpolicy.dll' required to execute the application was not found in 'C:\Program Files\dotnet'.
+Failed to run as a self-contained app.
+  - The application was run as a self-contained app because 'C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\testhost.runtimeconfig.json' was not found.
+  - If this should be a framework-dependent app, add the 'C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\testhost.runtimeconfig.json' file and specify the appropriate framework.
+dotnet : Testhost process for source(s) 'C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.
+0\BACKRabbit.Protocol.Firehose.Tests.dll' exited with error: A fatal error was encountered. The library 'hostpolicy.dll' 
+required to execute the application was not found in 'C:\Program Files\dotnet'.
+At line:1 char:38
++ ... BACKRabbit; dotnet test BACKRabbit.Protocol.Firehose.Tests --no-build ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Testhost proces... Files\dotnet'.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Failed to run as a self-contained app.
+  - The application was run as a self-contained app because 
+'C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\testhost.runtimeconfig.json' was not 
+found.
+  - If this should be a framework-dependent app, add the 
+'C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\bin\Debug\net8.0\testhost.runtimeconfig.json' file and 
+specify the appropriate framework.
+. Please check the diagnostic logs for more information.
+
+Test Run Aborted.
+     1>Project "C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\BACKRabbit.Protocol.Firehose.Tests.csproj" on node 1 (VSTest target(s)).
+     1>_VSTestConsole:
+         MSB4181: The "VSTestTask" task returned false but did not log an error.
+     1>Done Building Project "C:\Users\jp\Documents\BACKRabbit\BACKRabbit.Protocol.Firehose.Tests\BACKRabbit.Protocol.Firehose.Tests.csproj" (VSTest target(s)) -- FAILED.
+
+Build FAILED.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:00.62
