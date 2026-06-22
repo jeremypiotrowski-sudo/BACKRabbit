@@ -71,7 +71,7 @@ public class WinUsbTransport : IDeviceTransport
     {
         if (_vid == 0 || _pid == 0) throw new InvalidOperationException("No VID/PID. Use WinUsbTransport(int vid, int pid) or path with VID_xxxx&PID_xxxx.");
         _usbManager = new UsbDeviceManager();
-        if (!_usbManager.Open(_vid, _pid)) throw new InvalidOperationException($"Failed to open USB VID=0x{_vid:X4} PID=0x{_pid:X4}. Check EDL mode and WinUSB driver.");
+        if (!_usbManager.OpenDevice((ushort)_vid, (ushort)_pid)) throw new InvalidOperationException($"Failed to open USB VID=0x{_vid:X4} PID=0x{_pid:X4}. Check EDL mode and WinUSB driver.");
     }, ct);
 
     public Task DisconnectAsync() => Task.Run(() =>
