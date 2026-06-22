@@ -16,6 +16,8 @@ public class UsbDeviceManager : IDisposable
 {
     private UsbDevice? _device;
     private bool _disposed;
+    private WriteEndpointID _outEndpoint = WriteEndpointID.Ep02;
+    private ReadEndpointID _inEndpoint = ReadEndpointID.Ep01;
 
 public bool IsOpen => _device?.IsOpen == true;
 
@@ -26,7 +28,7 @@ public bool IsOpen => _device?.IsOpen == true;
 
     public UsbDevice? Device => _device;
 
-/// <summary>
+    /// <summary>
     /// Write data to USB bulk endpoint
     /// </summary>
     public int Write(byte[] buffer, int timeout = 5000)
@@ -36,8 +38,7 @@ public bool IsOpen => _device?.IsOpen == true;
 
         try
         {
-            // Use the first OUT endpoint (bulk endpoint 0x02)
-            var writer = _device.OpenEndpointWriter(WriteEndpointID.Ep02);
+            var writer = _device.OpenEndpointWriter(_outEndpoint);
             if (writer == null)
                 throw new InvalidOperationException("Could not open endpoint writer");
 
@@ -61,8 +62,7 @@ public bool IsOpen => _device?.IsOpen == true;
 
         try
         {
-            // Use the first IN endpoint (bulk endpoint 0x81)
-            var reader = _device.OpenEndpointReader(ReadEndpointID.Ep01);
+            var reader = _device.OpenEndpointReader(_inEndpoint);
             if (reader == null)
                 throw new InvalidOperationException("Could not open endpoint reader");
 
@@ -384,6 +384,7 @@ public event EventHandler<UsbDeviceEventArgs>? DeviceConnected;
                 return false;
             }
 
+            DiscoverEndpoints();
             DeviceConnected?.Invoke(this, new UsbDeviceEventArgs(GetDeviceInfo()));
             return true;
         }
@@ -396,28 +397,65 @@ public event EventHandler<UsbDeviceEventArgs>? DeviceConnected;
     }
 
     /// <summary>
-    /// Opens device for communication by VID/PID
+    /// Discover bulk IN/OUT endpoints from the active configuration.
+    /// Defaults to Ep01/Ep02 if discovery fails.
     /// </summary>
-    public bool Open(int vid, int pid)
+    private void DiscoverEndpoints()
     {
         try
         {
-            var deviceFinder = new UsbDeviceFinder(vid, pid);
-            _device = UsbDevice.OpenUsbDevice(deviceFinder);
+            if (_device?.Configs?.Count > 0)
+            {
+                foreach (var config in _device.Configs)
+                {
+                    foreach (var iface in config.InterfaceInfoList)
+                    {
+                        foreach (var endpoint in iface.EndpointInfoList)
+                        {
+                            var id = endpoint.Descriptor.EndpointID;
+                            var isIn = (id & 0x80) != 0;
+                            var isBulk = endpoint.Descriptor.Attributes == 0x02;
+                            if (!isBulk) continue;
 
-            if (_device == null)
-                return false;
-
-            if (!_device.IsOpen)
-                _device.Open();
-
-            return true;
+                            if (isIn)
+                                _inEndpoint = (ReadEndpointID)id;
+                            else
+                                _outEndpoint = (WriteEndpointID)id;
+                        }
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to open device: {ex.Message}");
-            return false;
+            System.Diagnostics.Debug.WriteLine($"Endpoint discovery failed: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Open any ADB-capable USB device by VID and PID.
+    /// Required for non-Samsung devices (Google, Nokia/HMD, etc.).
+    /// </summary>
+    public bool OpenDevice(ushort vid, ushort pid)
+    {
+        var deviceList = UsbDevice.AllDevices;
+
+        foreach (object obj in deviceList)
+        {
+            if (obj is UsbRegistry usbRegistry)
+            {
+                if (usbRegistry.Vid == vid && usbRegistry.Pid == pid)
+                {
+                    var usbDevice = usbRegistry.Device;
+                    if (usbDevice != null)
+                    {
+                        return OpenDeviceInternal(usbDevice);
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

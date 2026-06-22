@@ -67,8 +67,16 @@ public class AdbClient : IAdbClient
     {
         _usbManager = usb;
         
+        // Try Samsung-specific enumeration first for backward compatibility,
+        // then fall back to cross-vendor Android ADB enumeration.
         var devices = usb.EnumerateSamsungDevices();
         var adbDevice = devices.FirstOrDefault(d => d.DeviceMode == DeviceMode.ADB);
+        
+        if (adbDevice == null)
+        {
+            devices = UsbDeviceManager.EnumerateAllAdbDevices();
+            adbDevice = devices.FirstOrDefault(d => d.DeviceMode == DeviceMode.ADB);
+        }
         
         if (adbDevice == null)
         {
@@ -76,13 +84,17 @@ public class AdbClient : IAdbClient
             return false;
         }
         
-        if (!usb.OpenDevice(adbDevice.ProductId))
+        Log($"Found ADB device: VID={adbDevice.VendorId:X4} PID={adbDevice.ProductId:X4} ({adbDevice.Product})");
+        
+        if (!usb.OpenDevice(adbDevice.VendorId, adbDevice.ProductId))
         {
             Log("Failed to open ADB device");
             return false;
         }
         
         Serial = adbDevice.SerialNumber;
+        if (string.IsNullOrEmpty(Serial))
+            Serial = $"{adbDevice.VendorId:X4}:{adbDevice.ProductId:X4}";
         Log($"Opening USB transport for {Serial}");
         
         _transport = new UsbStream(usb);
