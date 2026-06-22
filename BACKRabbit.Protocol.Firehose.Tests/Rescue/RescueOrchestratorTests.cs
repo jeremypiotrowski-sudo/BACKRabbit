@@ -12,6 +12,8 @@ public class MockFirehoseClient : IFirehoseClient
 {
     // ─── Call tracking ───────────────────────────────────────
     public List<string> WriteCalls { get; } = new();
+    public List<(string Partition, long StartSector, int DataLength)> WriteBlocksCalls { get; } = new();
+    public int WriteBlocksCallCount => WriteBlocksCalls.Count;
     public List<string> EraseCalls { get; } = new();
     public List<string> ResetCalls { get; } = new();
     public List<string> ReadCalls { get; } = new();
@@ -44,6 +46,24 @@ public class MockFirehoseClient : IFirehoseClient
     {
         WriteCalls.Add(partitionName);
         PartitionData[partitionName] = data;
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> WritePartitionBlocksAsync(string partitionName, byte[] data, long startSector, int lun = 0, int sectorSize = 512, CancellationToken ct = default)
+    {
+        WriteBlocksCalls.Add((partitionName, startSector, data.Length));
+        // Simulate the write: update partition data at the specified offset
+        if (PartitionData.TryGetValue(partitionName, out var existing))
+        {
+            var updated = new byte[existing.Length];
+            Array.Copy(existing, updated, existing.Length);
+            int byteOffset = (int)(startSector * sectorSize);
+            if (byteOffset + data.Length <= updated.Length)
+            {
+                Array.Copy(data, 0, updated, byteOffset, data.Length);
+                PartitionData[partitionName] = updated;
+            }
+        }
         return Task.FromResult(true);
     }
 

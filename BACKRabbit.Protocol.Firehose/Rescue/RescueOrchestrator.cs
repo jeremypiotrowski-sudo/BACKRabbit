@@ -97,18 +97,41 @@ public class RescueOrchestrator
         report.FuseAudit = await fuseAuditor.AuditAsync(ct);
         Console.WriteLine($"  Done. {report.FuseAudit.TotalBlown}/{report.FuseAudit.TotalAvailable} fuses blown.");
 
-        // [4/7] Restore tampered partitions
-        Console.WriteLine("\n[4/7] Restoring tampered partitions...");
+        // [4/7] Restore tampered partitions — SPARSE REPAIR first, then full restore fallback
+        Console.WriteLine("\n[4/7] Restoring tampered partitions (sparse repair)...");
         var tampered = report.Partitions
             .Where(p => p.Status == "Tampered")
             .Select(p => p.PartitionName)
             .ToList();
 
+        // Phase 4a: Sparse repair — write only differing sectors from the full-GPT audit
+        if (report.FullGptAudit != null && report.FullGptAudit.MismatchCount > 0)
+        {
+            Console.WriteLine($"  [SPARSE] Full-GPT audit found {report.FullGptAudit.MismatchCount} mismatched partition(s)");
+            if (_dryRun)
+            {
+                var sparseRestorer = new PartitionRestorer(_client, _backupDir, report, _force, dryRun: true);
+                report.SparseRepair = await sparseRestorer.SparseRepairAsync(report.FullGptAudit, ct);
+                Console.WriteLine($"  [DRY-RUN] Sparse repair planned: {report.SparseRepair.TotalSectorsWritten} sectors across {report.SparseRepair.TotalPartitionsRepaired} partition(s)");
+            }
+            else
+            {
+                var sparseRestorer = new PartitionRestorer(_client, _backupDir, report, _force, dryRun: false);
+                report.SparseRepair = await sparseRestorer.SparseRepairAsync(report.FullGptAudit, ct);
+                Console.WriteLine($"  [SPARSE] Done. {report.SparseRepair.TotalPartitionsRepaired} repaired, {report.SparseRepair.TotalSectorsWritten} sectors written.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("  No sparse repair needed (no mismatches in full-GPT audit).");
+        }
+
+        // Phase 4b: Full restore fallback for partitions still tampered after sparse repair
         if (tampered.Count > 0)
         {
             if (_dryRun)
             {
-                Console.WriteLine($"  [DRY-RUN] Would restore {tampered.Count} tampered partition(s): {string.Join(", ", tampered)}");
+                Console.WriteLine($"  [DRY-RUN] Would full-restore {tampered.Count} tampered partition(s) as fallback: {string.Join(", ", tampered)}");
                 foreach (var name in tampered)
                 {
                     var backupPath = Path.Combine(_backupDir, $"{name}.img");
@@ -126,7 +149,7 @@ public class RescueOrchestrator
                     }
                     else
                     {
-                        Console.WriteLine($"    [DRY-RUN] {name}: no backup file — would skip");
+                        Console.WriteLine($"    [DRY-RUN] {name}: no backup file - would skip");
                     }
                 }
             }
@@ -134,12 +157,12 @@ public class RescueOrchestrator
             {
                 var restorer = new PartitionRestorer(_client, _backupDir, report, _force);
                 await restorer.RestoreAsync(tampered, ct);
-                Console.WriteLine($"  Done. {report.RestoreActions.Count} actions taken.");
+                Console.WriteLine($"  Done. {report.RestoreActions.Count} full-restore actions taken.");
             }
         }
         else
         {
-            Console.WriteLine("  No tampered partitions to restore.");
+            Console.WriteLine("  No full-restore fallback needed.");
         }
 
         // [5/7] Remove Magisk

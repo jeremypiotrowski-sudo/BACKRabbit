@@ -223,6 +223,66 @@ public class FirehoseClient : IFirehoseClient
         return finalText.Contains("ACK");
     }
 
+    /// <summary>
+    /// Write data to specific sectors within a partition (sparse/offset write).
+    /// Uses the firehose <program> command with start_sector set to the
+    /// partition's absolute start_sector + the provided startSector offset.
+    /// CONVENTION: startSector is a SECTOR NUMBER (not byte offset), matching
+    /// the firehose protocol's start_sector parameter.
+    /// data.Length should be a multiple of sectorSize.
+    /// </summary>
+    public virtual async Task<bool> WritePartitionBlocksAsync(
+        string partitionName, byte[] data, long startSector,
+        int lun = 0, int sectorSize = 512, CancellationToken ct = default)
+    {
+        var numSectors = (data.Length + sectorSize - 1) / sectorSize;
+
+        // Get partition info to compute absolute start sector on the LUN
+        var gptInfo = await GetPartitionInfoAsync(partitionName, lun, ct);
+        if (gptInfo == null)
+            throw new FirehoseException($"Partition '{partitionName}' not found on LUN {lun}");
+
+        // The firehose <program> start_sector is absolute on the storage LUN.
+        // The provided startSector is relative to the partition, so we add
+        // the partition's base StartSector from GPT.
+        long absoluteStartSector = (long)gptInfo.StartSector + startSector;
+
+        var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
+<data>
+  <program SECTOR_SIZE_IN_BYTES=""{sectorSize}"" num_partition_sectors=""{numSectors}"" 
+           physical_partition_number=""{lun}"" start_sector=""{absoluteStartSector}"" 
+           partition_name=""{partitionName}"" />
+</data>";
+
+        // Send command
+        await _transport.SendRawAsync(Encoding.UTF8.GetBytes(cmd), ct);
+
+        // Wait for ACK before sending data
+        var ackData = new List<byte>();
+        var ackBuffer = new byte[65536];
+        int ackRead = await ReadWithTimeoutAsync(ackBuffer, 2000, ct);
+        if (ackRead > 0)
+        {
+            ackData.AddRange(ackBuffer.AsSpan(0, ackRead).ToArray());
+            var ackText = Encoding.UTF8.GetString(ackData.ToArray());
+            if (!ackText.Contains("ACK"))
+                throw new FirehoseException($"Program (sparse) command not acknowledged: {ackText}");
+        }
+
+        // Send the raw data
+        await _transport.SendRawAsync(data, ct);
+
+        // Read final response
+        var finalData = new List<byte>();
+        var finalBuffer = new byte[65536];
+        int finalRead = await ReadWithTimeoutAsync(finalBuffer, 5000, ct);
+        if (finalRead > 0)
+            finalData.AddRange(finalBuffer.AsSpan(0, finalRead).ToArray());
+
+        var finalText = Encoding.UTF8.GetString(finalData.ToArray());
+        return finalText.Contains("ACK");
+    }
+
     /// <summary>Erase a partition by name.</summary>
     public virtual async Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default)
     {

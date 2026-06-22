@@ -28,6 +28,7 @@ public class MockFirehoseClient : IFirehoseClient
     // ─── Destructive Call Tracking ───────────────────────────
     public int DestructiveCallCount =>
         CallLog.Count(c => c.MethodName is nameof(WritePartitionAsync)
+            or nameof(WritePartitionBlocksAsync)
             or nameof(ErasePartitionAsync) or nameof(ResetAsync));
 
     public bool WasDestructiveMethodCalled(string methodName) =>
@@ -47,6 +48,7 @@ public class MockFirehoseClient : IFirehoseClient
         _peekResponses.Clear();
         _storageInfoResponse = "ufs";
         _writeResult = true;
+        _writeBlocksResult = true;
         _eraseResult = true;
         _chipInfo = null;
     }
@@ -58,6 +60,7 @@ public class MockFirehoseClient : IFirehoseClient
     private readonly Dictionary<uint, byte[]> _peekResponses = new();
     private string _storageInfoResponse = "ufs";
     private bool _writeResult = true;
+    private bool _writeBlocksResult = true;
     private bool _eraseResult = true;
     private SaharaChipInfo? _chipInfo;
 
@@ -75,6 +78,9 @@ public class MockFirehoseClient : IFirehoseClient
 
     public void SetWriteResult(bool result) =>
         _writeResult = result;
+
+    public void SetWriteBlocksResult(bool result) =>
+        _writeBlocksResult = result;
 
     public void SetEraseResult(bool result) =>
         _eraseResult = result;
@@ -129,6 +135,26 @@ public class MockFirehoseClient : IFirehoseClient
     {
         CallLog.Add(new CallRecord { MethodName = nameof(WritePartitionAsync), Arguments = new object?[] { partitionName, data.Length, lun, sectorSize } });
         return Task.FromResult(_writeResult);
+    }
+
+    public Task<bool> WritePartitionBlocksAsync(string partitionName, byte[] data, long startSector, int lun = 0, int sectorSize = 512, CancellationToken ct = default)
+    {
+        CallLog.Add(new CallRecord { MethodName = nameof(WritePartitionBlocksAsync), Arguments = new object?[] { partitionName, data.Length, startSector, lun, sectorSize } });
+
+        // Simulate the write: update partition data at the specified offset
+        if (_readPartitionResponses.TryGetValue(partitionName, out var existing))
+        {
+            var updated = new byte[existing.Length];
+            Array.Copy(existing, updated, existing.Length);
+            int byteOffset = (int)(startSector * sectorSize);
+            if (byteOffset + data.Length <= updated.Length)
+            {
+                Array.Copy(data, 0, updated, byteOffset, data.Length);
+                _readPartitionResponses[partitionName] = updated;
+            }
+        }
+
+        return Task.FromResult(_writeBlocksResult);
     }
 
     public Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default)

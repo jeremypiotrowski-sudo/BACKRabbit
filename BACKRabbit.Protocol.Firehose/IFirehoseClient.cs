@@ -22,6 +22,17 @@ public interface IFirehoseClient
 
     // ─── Write/Erase Operations (DESTRUCTIVE) ─────────────────
     Task<bool> WritePartitionAsync(string partitionName, byte[] data, int lun = 0, int sectorSize = 512, CancellationToken ct = default);
+
+    /// <summary>
+    /// Write data to specific sectors within a partition (sparse/offset write).
+    /// Uses the firehose <program> command with start_sector set to the
+    /// partition's absolute start_sector + the provided startSector offset.
+    /// CONVENTION: startSector is a SECTOR NUMBER (not byte offset), matching
+    /// the firehose protocol's start_sector parameter.
+    /// data.Length should be a multiple of sectorSize.
+    /// </summary>
+    Task<bool> WritePartitionBlocksAsync(string partitionName, byte[] data, long startSector, int lun = 0, int sectorSize = 512, CancellationToken ct = default);
+
     Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default);
 
     // ─── Device Control (DESTRUCTIVE) ─────────────────────────
