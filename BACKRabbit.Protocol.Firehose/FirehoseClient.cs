@@ -185,12 +185,17 @@ public class FirehoseClient : IFirehoseClient
         string partitionName, byte[] data, int lun = 0, int sectorSize = 512,
         CancellationToken ct = default)
     {
+        var gptInfo = await GetPartitionInfoAsync(partitionName, lun, ct);
+        if (gptInfo == null)
+            throw new FirehoseException($"Partition '{partitionName}' not found on LUN {lun}");
+
         var numSectors = (data.Length + sectorSize - 1) / sectorSize;
+        var absoluteStartSector = (long)gptInfo.StartSector;
 
         var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
   <program SECTOR_SIZE_IN_BYTES=""{sectorSize}"" num_partition_sectors=""{numSectors}"" 
-           physical_partition_number=""{lun}"" start_sector=""0"" 
+           physical_partition_number=""{lun}"" start_sector=""{absoluteStartSector}"" 
            partition_name=""{partitionName}"" />
 </data>";
 
@@ -316,8 +321,9 @@ public class FirehoseClient : IFirehoseClient
                 entries.Add(new GptPartitionEntry
                 {
                     Name = frag.RawValue ?? "",
-                    // Additional attributes (start_sector, num_sectors) would be parsed
-                    // from the full XML attributes in a more complete implementation.
+                    StartSector = frag.StartSector,
+                    Sectors = frag.Sectors,
+                    PartitionGuid = frag.PartitionGuid,
                 });
             }
         }
@@ -330,11 +336,15 @@ public class FirehoseClient : IFirehoseClient
         string partitionName, int lun = 0, CancellationToken ct = default)
     {
         var entries = await PrintGptAsync(lun, ct);
-        // The GPT response contains partition details — for now return basic info.
-        // A full implementation would parse start_sector and num_sectors from the XML.
-        return entries.Any(e => e.Name.Equals(partitionName, StringComparison.OrdinalIgnoreCase))
-            ? new GptPartitionInfo { Name = partitionName, StartSector = 0, Sectors = 0 }
-            : null;
+        var entry = entries.FirstOrDefault(e => e.Name.Equals(partitionName, StringComparison.OrdinalIgnoreCase));
+        if (entry == null) return null;
+
+        return new GptPartitionInfo
+        {
+            Name = entry.Name,
+            StartSector = entry.StartSector,
+            Sectors = entry.Sectors,
+        };
     }
 
     /// <summary>Query storage info (eMMC/UFS/NAND).</summary>
