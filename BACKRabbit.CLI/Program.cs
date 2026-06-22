@@ -179,6 +179,38 @@ public class Program
             });
         firmwareCommand.AddCommand(firmwareSourceCommand);
 
+        // Firmware import command (pre-downloaded ZIP → .img extraction)
+        var firmwareImportCommand = new Command("import", "Import pre-downloaded Samsung firmware ZIP for rescue use");
+        var importInputOption = new Option<FileInfo>("--input", "Path to firmware ZIP file (from SamMobile, SamFw, Bifrost, etc.)") { IsRequired = true };
+        var importOutputOption = new Option<DirectoryInfo>("--output", "Output directory for extracted partition images") { IsRequired = true };
+        firmwareImportCommand.AddOption(importInputOption);
+        firmwareImportCommand.AddOption(importOutputOption);
+        firmwareImportCommand.AddOption(verboseOption);
+        firmwareImportCommand.Handler = CommandHandler.Create<FileInfo, DirectoryInfo, bool>(
+            async (FileInfo input, DirectoryInfo output, bool verbose) =>
+            {
+                if (!input.Exists)
+                {
+                    Console.WriteLine($"❌ File not found: {input.FullName}");
+                    return;
+                }
+
+                Console.WriteLine($"🔥 BACKRabbit Firmware Importer");
+                Console.WriteLine($"   Input:  {input.FullName}");
+                Console.WriteLine($"   Output: {output.FullName}");
+                Console.WriteLine();
+
+                var importer = new FirmwareImporter();
+                var result = await importer.ImportAsync(input.FullName, output.FullName);
+
+                if (result.Success)
+                {
+                    Console.WriteLine($"\n✅ Firmware ready for rescue at: {output.FullName}");
+                    Console.WriteLine($"   Run: backrabbit firehose rescue full --backup {output.FullName} --dry-run");
+                }
+            });
+        firmwareCommand.AddCommand(firmwareImportCommand);
+
         return await rootCommand.InvokeAsync(args);
     }
 
