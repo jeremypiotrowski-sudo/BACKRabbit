@@ -23,26 +23,28 @@ public class FirmwareImporter
 
         Directory.CreateDirectory(outputDir);
 
-        Console.WriteLine($"📦 Extracting {Path.GetFileName(zipPath)}...");
-        var tempDir = Path.Combine(Path.GetTempPath(), $"backrabbit_import_{Guid.NewGuid():N}");
-        ZipFile.ExtractToDirectory(zipPath, tempDir);
+        Console.WriteLine($"📦 Opening {Path.GetFileName(zipPath)}...");
 
-        // Find all .tar.md5 and .tar files
-        var tarFiles = Directory.GetFiles(tempDir, "*.tar.md5", SearchOption.AllDirectories)
-            .Concat(Directory.GetFiles(tempDir, "*.tar", SearchOption.AllDirectories))
-            .Where(f => !f.EndsWith(".img"))
+        using var zipArchive = ZipFile.OpenRead(zipPath);
+        var tarEntries = zipArchive.Entries
+            .Where(e => e.FullName.EndsWith(".tar.md5", StringComparison.OrdinalIgnoreCase)
+                     || e.FullName.EndsWith(".tar", StringComparison.OrdinalIgnoreCase))
+            .Where(e => !e.FullName.EndsWith(".img", StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        if (tarFiles.Count == 0)
+        if (tarEntries.Count == 0)
         {
-            Directory.Delete(tempDir, true);
             throw new InvalidOperationException(
                 "No .tar.md5 files found in ZIP. Is this a valid Samsung firmware archive?");
         }
 
-        Console.WriteLine($"📋 Found {tarFiles.Count} firmware archives:");
-        foreach (var tf in tarFiles)
-            Console.WriteLine($"   - {Path.GetFileName(tf)} ({FormatBytes(new FileInfo(tf).Length)})");
+
+        Console.WriteLine($"📋 Found {tarEntries.Count} firmware archives:");
+        foreach (var te in tarEntries)
+            Console.WriteLine($"   - {te.FullName} ({FormatBytes(te.Length)})");
+
+        var tempDir = Path.Combine(Path.GetTempPath(), $"backrabbit_import_{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
 
         // Extract each .tar.md5 using existing SamsungFirmwareExtractor
         var manifest = new FirmwareImportManifest
@@ -52,13 +54,27 @@ public class FirmwareImporter
             Partitions = new List<PartitionEntry>()
         };
 
-        foreach (var tarFile in tarFiles)
+        foreach (var tarEntry in tarEntries)
         {
-            Console.WriteLine($"🔧 Extracting {Path.GetFileName(tarFile)}...");
+            var tarFileName = Path.GetFileName(tarEntry.FullName);
+            Console.WriteLine($"🔧 Extracting {tarFileName}...");
 
             try
             {
-                var package = SamsungFirmwareExtractor.ExtractTarMd5(tarFile, skipMd5Verification: true);
+                // Stream the .tar.md5 out of the ZIP to a temp file, then process it.
+                // We avoid extracting the entire ZIP to disk because Samsung firmware ZIPs
+                // can be 15+ GB and double the required disk space.
+                var tempTarPath = Path.Combine(tempDir, tarFileName);
+                using (var entryStream = tarEntry.Open())
+                using (var tempFs = new FileStream(tempTarPath, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 1024))
+                {
+                    await entryStream.CopyToAsync(tempFs);
+                }
+
+                var package = SamsungFirmwareExtractor.ExtractTarMd5(tempTarPath, skipMd5Verification: true);
+
+                // Clean up the temp tar.md5 as we go to keep disk usage low
+                try { File.Delete(tempTarPath); } catch { }
 
                 foreach (var partition in package.Partitions)
                 {
@@ -84,7 +100,8 @@ public class FirmwareImporter
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"   ⚠️ Failed to extract {Path.GetFileName(tarFile)}: {ex.Message}");
+
+                Console.WriteLine($"   ⚠️ Failed to extract {tarFileName}: {ex.Message}");
             }
         }
 
