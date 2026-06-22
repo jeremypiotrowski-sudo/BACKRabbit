@@ -230,6 +230,18 @@ public class PartitionRestorer
                 continue;
             }
 
+            // STOCK-ONLY WRITE ENFORCEMENT — verify the stock file's hash matches
+            // manifest.json BEFORE writing any block. This is the load-bearing
+            // security constraint that makes BACKRabbit safe to open-source.
+            if (!VerifyStockIntegrity(entry.PartitionName, stockPath, ct))
+            {
+                partResult.Status = SparseRepairStatus.Skipped;
+                partResult.ErrorMessage = "STOCK INTEGRITY VERIFICATION FAILED — WRITE REFUSED";
+                Console.WriteLine($"  [SPARSE] {entry.PartitionName}: REFUSED — stock integrity verification failed");
+                result.Partitions.Add(partResult);
+                continue;
+            }
+
             // c. Write each differing sector
             Console.WriteLine($"  [SPARSE] {entry.PartitionName}: Writing {entry.DifferingSectorCount} differing sectors...");
             int writtenCount = 0;
@@ -471,5 +483,140 @@ public class PartitionRestorer
     {
         var hash = SHA256.HashData(data);
         return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    // ─── STOCK-ONLY WRITE ENFORCEMENT (Sub-step E) ───────────
+    // Per-partition cache of manifest hash lookups to avoid re-hashing the same file for every block.
+    // Keyed by partition NAME (case-insensitive). Value = null if no hash in manifest; else expected SHA256.
+    private readonly Dictionary<string, string?> _manifestHashCache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    // Per-partition cache of verification results to skip the same check twice in one rescue.
+    private readonly Dictionary<string, bool> _stockVerificationCache =
+        new(StringComparer.OrdinalIgnoreCase);
+
+    // Lazy-loaded manifest. Null means not yet loaded; empty list means loaded but no manifest.json.
+    private List<FirmwareManifestPartitionEntry>? _manifest;
+
+    /// <summary>
+    /// Mirrors the per-partition entry format from FirmwareImporter.ManifestEntry.
+    /// We define it locally to avoid a cross-project dependency.
+    /// </summary>
+    public class FirmwareManifestPartitionEntry
+    {
+        public string Name { get; set; } = "";
+        public string FileName { get; set; } = "";
+        public string Sha256 { get; set; } = "";
+        public long SizeBytes { get; set; }
+    }
+
+    /// <summary>
+    /// Mirrors FirmwareImportManifest. Top-level fields we care about: Partitions.
+    /// </summary>
+    public class FirmwareManifest
+    {
+        public List<FirmwareManifestPartitionEntry> Partitions { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Lazy-load manifest.json from the backup directory. Cached for the lifetime of this restorer.
+    /// </summary>
+    private List<FirmwareManifestPartitionEntry>? LoadManifest()
+    {
+        if (_manifest != null) return _manifest;
+        var manifestPath = Path.Combine(_backupDir, "manifest.json");
+        if (!File.Exists(manifestPath))
+        {
+            _manifest = new List<FirmwareManifestPartitionEntry>();
+            return _manifest;
+        }
+        try
+        {
+            var json = File.ReadAllText(manifestPath);
+            var manifest = System.Text.Json.JsonSerializer.Deserialize<FirmwareManifest>(json);
+            _manifest = manifest?.Partitions ?? new List<FirmwareManifestPartitionEntry>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  [STOCK-VERIFY] ⚠️  manifest.json parse FAILED: {ex.Message}");
+            Console.WriteLine($"  [STOCK-VERIFY] ⚠️  Treating as missing manifest — all writes will be REFUSED.");
+            _manifest = new List<FirmwareManifestPartitionEntry>();
+        }
+        return _manifest;
+    }
+
+    /// <summary>
+    /// Look up the expected SHA256 for a partition from the cached manifest.
+    /// </summary>
+    private string? LookupManifestHash(string partitionName)
+    {
+        if (_manifestHashCache.TryGetValue(partitionName, out var cached))
+            return cached;
+        var manifest = LoadManifest();
+        var entry = manifest.Find(e => e.Name.Equals(partitionName, StringComparison.OrdinalIgnoreCase)
+                                     || e.FileName.Equals($"{partitionName}.img", StringComparison.OrdinalIgnoreCase));
+        var hash = entry?.Sha256;
+        _manifestHashCache[partitionName] = hash;
+        return hash;
+    }
+
+    /// <summary>
+    /// STOCK-ONLY WRITE ENFORCEMENT — verifies that the stock file in the backup directory
+    /// matches the SHA256 recorded in manifest.json BEFORE any write operation proceeds.
+    ///
+    /// This is the load-bearing security constraint that makes BACKRabbit structurally
+    /// incapable of weaponization: even if an attacker substitutes a malicious stock file,
+    /// the SHA256 in manifest.json (which the operator reviewed when importing firmware)
+    /// will not match, and the write is REFUSED.
+    ///
+    /// Cached per-partition so we don't re-hash the same file for every block.
+    /// Returns true if safe to proceed; false if write must be refused.
+    /// </summary>
+    public bool VerifyStockIntegrity(string partitionName, string stockFilePath, CancellationToken ct = default)
+    {
+        if (_stockVerificationCache.TryGetValue(partitionName, out var cached))
+            return cached;
+
+        // Gate 1: manifest.json must exist and contain a hash for this partition
+        var expectedHash = LookupManifestHash(partitionName);
+        if (string.IsNullOrEmpty(expectedHash))
+        {
+            Console.WriteLine($"  [STOCK-VERIFY] ❌ NO MANIFEST HASH for '{partitionName}' — CANNOT VERIFY STOCK INTEGRITY — REFUSED.");
+            _stockVerificationCache[partitionName] = false;
+            return false;
+        }
+
+        // Gate 2: stock file must exist (defensive — caller should already have checked)
+        if (!File.Exists(stockFilePath))
+        {
+            Console.WriteLine($"  [STOCK-VERIFY] ❌ Stock file missing: {stockFilePath} — REFUSED.");
+            _stockVerificationCache[partitionName] = false;
+            return false;
+        }
+
+        // Gate 3: SHA256 of stock file must equal manifest hash
+        try
+        {
+            var actualHash = ComputeSha256(File.ReadAllBytes(stockFilePath));
+            if (!string.Equals(actualHash, expectedHash, StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"  [STOCK-VERIFY] ❌ HASH MISMATCH for '{partitionName}':");
+                Console.WriteLine($"       Expected (manifest): {expectedHash[..Math.Min(16, expectedHash.Length)]}…");
+                Console.WriteLine($"       Actual   (file):    {actualHash[..Math.Min(16, actualHash.Length)]}…");
+                Console.WriteLine($"       POSSIBLE TAMPERED FIRMWARE — WRITE REFUSED.");
+                _stockVerificationCache[partitionName] = false;
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  [STOCK-VERIFY] ❌ Hash computation failed for '{partitionName}': {ex.Message} — REFUSED.");
+            _stockVerificationCache[partitionName] = false;
+            return false;
+        }
+
+        Console.WriteLine($"  [STOCK-VERIFY] ✅ Stock integrity verified for '{partitionName}'.");
+        _stockVerificationCache[partitionName] = true;
+        return true;
     }
 }

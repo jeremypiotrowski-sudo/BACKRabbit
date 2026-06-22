@@ -80,6 +80,32 @@ public class SparseWriteTests : IDisposable
         return data;
     }
 
+    /// <summary>
+    /// Writes a manifest.json into the test backup directory that contains valid SHA256
+    /// hashes for the stock files. Required for stock-only write enforcement (Sub-step E).
+    /// Should be called AFTER all stock files are written.
+    /// </summary>
+    private void WriteValidManifestForAllStockFiles()
+    {
+        var entries = new List<PartitionRestorer.FirmwareManifestPartitionEntry>();
+        foreach (var filePath in Directory.GetFiles(_testBackupDir, "*.img"))
+        {
+            var data = File.ReadAllBytes(filePath);
+            var name = Path.GetFileNameWithoutExtension(filePath);
+            entries.Add(new PartitionRestorer.FirmwareManifestPartitionEntry
+            {
+                Name = name,
+                FileName = Path.GetFileName(filePath),
+                Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data)).ToLowerInvariant(),
+                SizeBytes = data.Length,
+            });
+        }
+        var manifest = new PartitionRestorer.FirmwareManifest { Partitions = entries };
+        File.WriteAllText(Path.Combine(_testBackupDir, "manifest.json"),
+            System.Text.Json.JsonSerializer.Serialize(manifest,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+    }
+
     private static FullGptAuditResult BuildAudit(string partitionName, GptAuditStatus status, List<long> differingSectors)
     {
         return new FullGptAuditResult
@@ -116,6 +142,7 @@ public class SparseWriteTests : IDisposable
         // Stock backup has correct sectors 1, 3, 5
         var stockData = CreatePartitionData(sectorCount);
         File.WriteAllBytes(Path.Combine(_testBackupDir, $"{partitionName}.img"), stockData);
+        WriteValidManifestForAllStockFiles();
 
         var client = CreateMockClient(partitionName, partitionData);
         var report = new RescueReport();
@@ -151,6 +178,7 @@ public class SparseWriteTests : IDisposable
         // Stock data — sectors 2 and 7 have known good content
         var stockData = CreatePartitionData(20);
         File.WriteAllBytes(Path.Combine(_testBackupDir, $"{partitionName}.img"), stockData);
+        WriteValidManifestForAllStockFiles();
 
         // Partition data — start identical to stock, then sparse repair will read/write to verify
         var partitionData = CreatePartitionData(20);

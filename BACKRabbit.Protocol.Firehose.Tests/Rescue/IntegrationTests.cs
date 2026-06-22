@@ -92,6 +92,20 @@ public class IntegrationTests : IDisposable
         File.WriteAllBytes(Path.Combine(_testBackupDir, "devinfo.img"), CreateStockPartition(1, 0xDD));
         File.WriteAllBytes(Path.Combine(_testBackupDir, "persist.img"), CreateStockPartition(32, 0xEE));
 
+        // Write manifest.json with valid SHA256 hashes for stock-only write enforcement (Sub-step E)
+        var entries = new List<PartitionRestorer.FirmwareManifestPartitionEntry>
+        {
+            new() { Name = "boot_a",   FileName = "boot_a.img",   Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stockBootA)).ToLowerInvariant(),     SizeBytes = stockBootA.Length },
+            new() { Name = "boot_b",   FileName = "boot_b.img",   Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stockBootB)).ToLowerInvariant(),     SizeBytes = stockBootB.Length },
+            new() { Name = "system_a", FileName = "system_a.img", Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(stockSystemA)).ToLowerInvariant(),   SizeBytes = stockSystemA.Length },
+            new() { Name = "devinfo",  FileName = "devinfo.img",  Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(CreateStockPartition(1, 0xDD))).ToLowerInvariant(), SizeBytes = 512 },
+            new() { Name = "persist",  FileName = "persist.img",  Sha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(CreateStockPartition(32, 0xEE))).ToLowerInvariant(), SizeBytes = 32 * 512 },
+        };
+        var manifest = new PartitionRestorer.FirmwareManifest { Partitions = entries };
+        File.WriteAllText(Path.Combine(_testBackupDir, "manifest.json"),
+            System.Text.Json.JsonSerializer.Serialize(manifest,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+
         return client;
     }
 
