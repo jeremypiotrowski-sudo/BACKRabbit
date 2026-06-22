@@ -342,6 +342,19 @@ public class PartitionRestorer
             return result;
         }
 
+        // GATE 3 (early): Dry-run forces ZERO calls and bypasses confirmation.
+        // Check BEFORE confirmation so orchestrator's auto-bypass token (DRY-RUN-AUTO)
+        // doesn't need to match the device serial number.
+        if (_dryRun)
+        {
+            result.Status = WipeDataStatus.DryRunLogged;
+            result.DryRun = true;
+            result.ConfirmationProvided = !string.IsNullOrEmpty(forceConfirmation);
+            Console.WriteLine($"  [DRY-RUN] [WIPE] Would erase userdata partition at block level.");
+            Console.WriteLine($"  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.");
+            return result;
+        }
+
         // GATE 2: Typed confirmation must match
         if (string.IsNullOrEmpty(forceConfirmation) || forceConfirmation != expectedToken)
         {
@@ -352,16 +365,6 @@ public class PartitionRestorer
             return result;
         }
         result.ConfirmationProvided = true;
-
-        // GATE 3: Dry-run forces ZERO calls
-        if (_dryRun)
-        {
-            result.Status = WipeDataStatus.DryRunLogged;
-            result.DryRun = true;
-            Console.WriteLine($"  [DRY-RUN] [WIPE] Would erase userdata partition at block level.");
-            Console.WriteLine($"  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.");
-            return result;
-        }
 
         // ACTUAL WIPE: erase userdata, then readback-verify
         Console.WriteLine($"  [WIPE] Erasing userdata partition...");

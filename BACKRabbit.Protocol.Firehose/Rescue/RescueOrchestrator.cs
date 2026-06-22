@@ -207,58 +207,82 @@ public class RescueOrchestrator
             }
         }
 
-        // [5/7] Remove Magisk
+        // [5/7] Remove Magisk — SKIP if --wipe-data was used AND userdata verified empty
         Console.WriteLine("\n[5/7] Removing Magisk...");
-        var magiskTampered = report.Partitions
-            .Where(p => p.Anomalies.Any(a => a.Contains("Magisk")))
-            .Select(p => p.PartitionName)
-            .ToList();
-
-        if (magiskTampered.Count > 0)
+        bool wipeDataVerifiedEmpty = report.WipeData?.Status == WipeDataStatus.WipedAndVerified;
+        if (_wipeData && wipeDataVerifiedEmpty)
         {
-            if (_dryRun)
+            Console.WriteLine("  [SKIPPED] userdata wiped and verified — /data/adb does not exist.");
+            Console.WriteLine("             Magisk removal is irrelevant: no persistent Magisk artifacts can survive an empty userdata.");
+            // Add a placeholder MagiskRemovalResult so the report shows the skip
+            report.MagiskRemovals.Add(new MagiskRemovalResult
             {
-                Console.WriteLine($"  [DRY-RUN] Magisk detected in {magiskTampered.Count} partition(s): {string.Join(", ", magiskTampered)}");
-                Console.WriteLine($"  [DRY-RUN] Would parse boot image → detect artifacts → clean ramdisk → repack → flash → verify");
-                foreach (var name in magiskTampered)
+                BootPartition = "(skipped: userdata wiped)",
+                MagiskFound = false,
+                MagiskRemoved = false,
+                VbmetaRestored = false,
+            });
+        }
+        else
+        {
+            var magiskTampered = report.Partitions
+                .Where(p => p.Anomalies.Any(a => a.Contains("Magisk")))
+                .Select(p => p.PartitionName)
+                .ToList();
+
+            if (magiskTampered.Count > 0)
+            {
+                if (_dryRun)
                 {
-                    report.MagiskRemovals.Add(new MagiskRemovalResult
+                    Console.WriteLine($"  [DRY-RUN] Magisk detected in {magiskTampered.Count} partition(s): {string.Join(", ", magiskTampered)}");
+                    Console.WriteLine($"  [DRY-RUN] Would parse boot image → detect artifacts → clean ramdisk → repack → flash → verify");
+                    foreach (var name in magiskTampered)
                     {
-                        BootPartition = name,
-                        MagiskFound = true,
-                        MagiskRemoved = false,
-                        VbmetaRestored = false
-                    });
+                        report.MagiskRemovals.Add(new MagiskRemovalResult
+                        {
+                            BootPartition = name,
+                            MagiskFound = true,
+                            MagiskRemoved = false,
+                            VbmetaRestored = false
+                        });
+                    }
+                    Console.WriteLine($"  [DRY-RUN] DRY-RUN PLAN: Flash {string.Join("+", magiskTampered)}, remove Magisk, verify");
                 }
-                Console.WriteLine($"  [DRY-RUN] DRY-RUN PLAN: Flash {string.Join("+", magiskTampered)}, remove Magisk, verify");
+                else
+                {
+                    var remover = new MagiskRemover(_client, _backupDir, report);
+                    await remover.RemoveAllAsync(ct);
+                    Console.WriteLine($"  Done. {report.MagiskRemovals.Count} boot partitions processed.");
+                }
             }
             else
             {
-                var remover = new MagiskRemover(_client, _backupDir, report);
-                await remover.RemoveAllAsync(ct);
-                Console.WriteLine($"  Done. {report.MagiskRemovals.Count} boot partitions processed.");
+                Console.WriteLine("  No Magisk detected in boot partitions.");
             }
-        }
-        else
-        {
-            Console.WriteLine("  No Magisk detected in boot partitions.");
-        }
+        }  // closes the new else block (--wipe-data skip wrapper)
 
-        // [6/7] Final verification
+        // [6/7] Final verification — re-read partitions from device, compare to pre-rescue
         Console.WriteLine("\n[6/7] Final verification...");
         if (_dryRun)
         {
-            Console.WriteLine("  [DRY-RUN] Would re-run PartitionDiagnostics to confirm all partitions clean");
-            Console.WriteLine("  [DRY-RUN] Skipping post-rescue verification (no writes were performed)");
+            Console.WriteLine("  [DRY-RUN] Would re-run FullGptAudit to confirm all partitions match stock.");
+            Console.WriteLine("  [DRY-RUN] Skipping post-rescue verification (no writes were performed).");
             // In dry-run, verdict stays as diagnosed — no changes were made
+            report.PostRescueGptAudit = null; // explicit: no post-rescue readback in dry-run
         }
         else
         {
+            // Re-run FullGptAudit to verify mismatched partitions are now matching
+            var postAuditDiagnostics = new PartitionDiagnostics(_client, report, _backupDir);
+            var postAudit = await postAuditDiagnostics.RunFullGptAuditAsync(ct);
+            report.PostRescueGptAudit = postAudit;
+            Console.WriteLine($"  Post-rescue GPT audit: {postAudit.TotalPartitions} partitions, {postAudit.MatchCount} match, {postAudit.MismatchCount} mismatch");
+
+            // Also update the legacy per-partition diagnosis for the existing critical-partition flow
             var verifyReport = new RescueReport();
             var verifyDiagnostics = new PartitionDiagnostics(_client, verifyReport, _backupDir);
             await verifyDiagnostics.RunAsync(ct);
 
-            // Update original report with post-rescue status
             foreach (var vp in verifyReport.Partitions)
             {
                 var orig = report.Partitions.Find(p => p.PartitionName == vp.PartitionName);
@@ -267,6 +291,28 @@ public class RescueOrchestrator
                     orig.Status = "Normal (restored)";
                     orig.Anomalies.Clear();
                     orig.Anomalies.Add("Restored successfully");
+                }
+            }
+
+            // Cross-check: any pre-rescue MISMATCH partition that is still MISMATCH post-rescue?
+            if (report.FullGptAudit != null)
+            {
+                var preMismatch = report.FullGptAudit.Entries
+                    .Where(e => e.Status == GptAuditStatus.Mismatch)
+                    .Select(e => e.PartitionName)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var postMismatch = postAudit.Entries
+                    .Where(e => e.Status == GptAuditStatus.Mismatch)
+                    .Select(e => e.PartitionName)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var stillMismatched = preMismatch.Intersect(postMismatch, StringComparer.OrdinalIgnoreCase).ToList();
+                if (stillMismatched.Count > 0)
+                {
+                    Console.WriteLine($"  ⚠️  {stillMismatched.Count} partition(s) still mismatched post-rescue: {string.Join(", ", stillMismatched)}");
+                }
+                else if (preMismatch.Count > 0)
+                {
+                    Console.WriteLine($"  ✅ All {preMismatch.Count} previously-mismatched partition(s) now match stock.");
                 }
             }
 
@@ -327,15 +373,39 @@ public class RescueOrchestrator
 
     private static OverallVerdict DeterminePostRescueVerdict(RescueReport report)
     {
+        // CRITICAL: WipeData verification failure → PermanentDamage (regardless of other factors)
+        if (report.WipeData?.Status == WipeDataStatus.VerificationFailed)
+            return OverallVerdict.PermanentDamage;
+
+        // Evidence: any pre-rescue MISMATCH partition that is still MISMATCH post-rescue → rescue failed
+        if (report.FullGptAudit != null && report.PostRescueGptAudit != null)
+        {
+            var preMismatch = report.FullGptAudit.Entries
+                .Where(e => e.Status == GptAuditStatus.Mismatch)
+                .Select(e => e.PartitionName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var postMismatch = report.PostRescueGptAudit.Entries
+                .Where(e => e.Status == GptAuditStatus.Mismatch)
+                .Select(e => e.PartitionName)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var stillMismatched = preMismatch.Intersect(postMismatch, StringComparer.OrdinalIgnoreCase).Count();
+            if (stillMismatched > 0)
+                return OverallVerdict.PermanentDamage;
+        }
+
+        // Sparse repair failures → not fully recovered
+        bool sparseRepairFailed = report.SparseRepair != null
+            && report.SparseRepair.TotalPartitionsFailed > 0;
+
         bool anyStillTampered = report.Partitions.Any(p => p.Status == "Tampered");
         bool anyPermanent = report.FuseAudit?.TotalBlown > 0;
-        bool allRestored = report.RestoreActions.Count > 0
-            && report.RestoreActions.All(a => a.Verified || a.Action == "Skipped");
 
-        if (!anyStillTampered && !anyPermanent) return OverallVerdict.FullyRecovered;
-        if (anyStillTampered && !anyPermanent) return OverallVerdict.PartiallyRecovered;
-        if (anyPermanent && !anyStillTampered) return OverallVerdict.PartiallyRecovered;
-        if (anyPermanent && anyStillTampered) return OverallVerdict.PermanentDamage;
+        if (!anyStillTampered && !anyPermanent && !sparseRepairFailed)
+            return OverallVerdict.FullyRecovered;
+        if (anyStillTampered)
+            return OverallVerdict.PermanentDamage;
+        if (anyPermanent || sparseRepairFailed)
+            return OverallVerdict.PartiallyRecovered;
         return OverallVerdict.PartiallyRecovered;
     }
 
