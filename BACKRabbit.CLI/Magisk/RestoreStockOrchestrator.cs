@@ -90,16 +90,33 @@ public class RestoreStockOrchestrator
                 return result;
             }
 
-            // Phase 4: Clean /data/adb
+            // Phase 4: Reboot to recovery and clean /data/adb
+            // Recovery runs as root with permissive SELinux (androidboot.selinux=permissive in cmdline).
+            // Normal ADB shell (UID 2000) can't access root-owned /data/adb even in permissive mode.
+            // Recovery ADB runs as root — can rm -rf /data/adb subdirectories.
             WriteLine();
-            WriteLine("=== Phase 4: Clean /data/adb ===");
-            var cleanResult = await RunCleanAsync(ct);
+            WriteLine("=== Phase 4: Clean /data/adb via Recovery ===");
+            WriteLine("Rebooting to recovery (root access + permissive SELinux)...");
+            var cleanResult = await RunRecoveryCleanAsync(ct);
             result.CleanSuccess = cleanResult.Success;
             result.CleanError = cleanResult.Error;
 
-            // Phase 5: Verify
+            // Phase 5: Reboot to system and verify
             WriteLine();
             WriteLine("=== Phase 5: Verify ===");
+            WriteLine("Rebooting to system...");
+            if (!await _adb.RebootAsync("", ct))
+            {
+                WriteLine("WARNING: Reboot command may have failed — device may still reboot");
+            }
+            WriteLine("Waiting for device to come back online...");
+            if (!await _adb.WaitForDeviceAsync(60000, ct))
+            {
+                result.Status = RestoreStockStatus.Partial;
+                result.Error = "Device did not return to ADB after reboot. Clean may have succeeded but verification failed.";
+                return result;
+            }
+
             var verifyResult = await RunVerifyAsync(analysis, ct);
             result.BootVerified = verifyResult.BootVerified;
             result.VbmetaVerified = verifyResult.VbmetaVerified;
@@ -617,6 +634,71 @@ public class RestoreStockOrchestrator
 
         status.Summary = sb.ToString();
         return status;
+    }
+
+    /// <summary>
+    /// Clean /data/adb from recovery mode.
+    /// Recovery runs as root with permissive SELinux (androidboot.selinux=permissive in cmdline).
+    /// Normal ADB shell (UID 2000) can't access root-owned /data/adb even in permissive mode.
+    /// Recovery ADB runs as root — can rm -rf /data/adb subdirectories.
+    /// </summary>
+    private async Task<(bool Success, string? Error)> RunRecoveryCleanAsync(CancellationToken ct)
+    {
+        try
+        {
+            // Reboot to recovery
+            if (!await _adb.RebootRecoveryAsync(ct))
+                return (false, "Failed to reboot to recovery.");
+
+            // Wait for recovery to boot and ADB to come up
+            WriteLine("Waiting for recovery ADB (up to 60s)...");
+            await Task.Delay(5000, ct); // Recovery typically boots in 5-10 seconds
+            
+            // Reconnect ADB after recovery boot
+            if (!await _adb.ConnectUsbAsync(_usb, ct))
+                return (false, "Failed to connect ADB in recovery mode. Device may not have recovery ADB enabled.");
+
+            WriteLine($"Recovery ADB connected: {_adb.Serial}");
+
+            // Verify we're in recovery
+            var whoami = await _adb.ExecuteShellAsync("whoami 2>&1", ct);
+            WriteLine($"Recovery shell user: {whoami.Trim()}");
+
+            // Clean /data/adb subdirectories (recovery runs as root)
+            var commands = new[]
+            {
+                "rm -rf /data/adb/magisk",
+                "rm -rf /data/adb/modules",
+                "rm -rf /data/adb/post-fs-data.d",
+                "rm -rf /data/adb/service.d",
+                "find /data/adb -name '*.sh' -delete 2>/dev/null; true",
+                "ls -la /data/adb/ 2>&1 || echo 'NO_DATA_ADB'"
+            };
+
+            foreach (var cmd in commands)
+            {
+                WriteLine($" recovery shell: {cmd}");
+                var output = await _adb.ExecuteShellAsync(cmd, ct);
+                if (!string.IsNullOrWhiteSpace(output))
+                    WriteLine($"   {output.Trim()}");
+            }
+
+            // Verify clean
+            var verify = await _adb.ExecuteShellAsync("ls -la /data/adb/ 2>&1 || echo 'NO_DATA_ADB'", ct);
+            var isClean = verify.Contains("NO_DATA_ADB") || 
+                          string.IsNullOrWhiteSpace(verify) ||
+                          (verify.Trim().Split('\n', StringSplitOptions.RemoveEmptyEntries).Length <= 1);
+
+            WriteLine(isClean
+                ? "✅ /data/adb cleaned successfully from recovery"
+                : $"⚠️ /data/adb may still have content: {verify.Trim()}");
+
+            return (isClean, isClean ? null : "Clean may have been partial — some content remains in /data/adb");
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Recovery clean failed: {ex.Message}");
+        }
     }
 
     private void WriteLine(string message = "")
