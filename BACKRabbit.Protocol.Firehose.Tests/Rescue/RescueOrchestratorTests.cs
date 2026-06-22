@@ -4,10 +4,11 @@ using System.Text;
 namespace BACKRabbit.Protocol.Firehose.Tests.Rescue;
 
 /// <summary>
-/// Mock FirehoseClient that overrides all virtual methods used by the rescue pipeline.
+/// Mock FirehoseClient that implements IFirehoseClient directly.
 /// Tracks write/erase/reset calls so tests can assert they were (or were not) invoked.
+/// No base class inheritance — pure interface implementation, no side effects.
 /// </summary>
-public class MockFirehoseClient : FirehoseClient
+public class MockFirehoseClient : IFirehoseClient
 {
     // ─── Call tracking ───────────────────────────────────────
     public List<string> WriteCalls { get; } = new();
@@ -22,39 +23,12 @@ public class MockFirehoseClient : FirehoseClient
     public Dictionary<uint, byte[]> FuseData { get; set; } = new();
     public SaharaChipInfo? ChipInfoOverride { get; set; }
 
-    // ─── Constructor ─────────────────────────────────────────
-    // Pass null transport + a dummy state machine — we override all methods that use them.
-    public MockFirehoseClient()
-        : base(null!, new SaharaStateMachine())
-    {
-        // Set chip info on the state machine so ChipInfo property works
-        if (ChipInfoOverride != null)
-            SaharaStateMachine_SetChipInfo(ChipInfoOverride);
-    }
+    // ─── IFirehoseClient.ChipInfo ────────────────────────────
+    public SaharaChipInfo? ChipInfo => ChipInfoOverride;
 
-    private void SaharaStateMachine_SetChipInfo(SaharaChipInfo info)
-    {
-        // Use the public SetChipInfo API, then manually walk the state machine
-        // through valid transitions to CommandMode so IsInitialized returns true.
-        // SetChipInfo transitions to HelloReceived.
-        // We need: HelloReceived → HelloSent → ImageUploading → ImageUploadComplete → CommandMode
-        var sm = new SaharaStateMachine();
-        sm.SetChipInfo(info);                          // HelloReceived
-        sm.TransitionTo(SaharaState.HelloSent);        // HelloSent
-        sm.TransitionTo(SaharaState.ImageUploading);   // ImageUploading
-        sm.TransitionTo(SaharaState.ImageUploadComplete); // ImageUploadComplete
-        sm.TransitionTo(SaharaState.CommandMode);      // CommandMode
+    // ─── IFirehoseClient implementation ──────────────────────
 
-        // Replace the state machine in the base class via reflection on the readonly field
-        var smField = typeof(FirehoseClient).GetField("_stateMachine",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        if (smField != null)
-            smField.SetValue(this, sm);
-    }
-
-    // ─── Overridden methods ──────────────────────────────────
-
-    public override Task<byte[]> ReadPartitionAsync(
+    public Task<byte[]> ReadPartitionAsync(
         string partitionName, int lun = 0, int sectorSize = 512,
         CancellationToken ct = default)
     {
@@ -64,45 +38,43 @@ public class MockFirehoseClient : FirehoseClient
         throw new FirehoseException($"Partition '{partitionName}' not found");
     }
 
-    public override Task<bool> WritePartitionAsync(
+    public Task<bool> WritePartitionAsync(
         string partitionName, byte[] data, int lun = 0, int sectorSize = 512,
         CancellationToken ct = default)
     {
         WriteCalls.Add(partitionName);
-        // Update our stored data so subsequent reads return the written data
         PartitionData[partitionName] = data;
         return Task.FromResult(true);
     }
 
-    public override Task<bool> ErasePartitionAsync(
+    public Task<bool> ErasePartitionAsync(
         string partitionName, int lun = 0, CancellationToken ct = default)
     {
         EraseCalls.Add(partitionName);
         return Task.FromResult(true);
     }
 
-    public override Task<List<GptPartitionEntry>> PrintGptAsync(
+    public Task<List<GptPartitionEntry>> PrintGptAsync(
         int lun = 0, CancellationToken ct = default)
     {
         return Task.FromResult(GptEntries);
     }
 
-    public override Task<string> GetStorageInfoAsync(CancellationToken ct = default)
+    public Task<string> GetStorageInfoAsync(CancellationToken ct = default)
     {
         return Task.FromResult(StorageType);
     }
 
-    public override Task ResetAsync(string mode = "system", CancellationToken ct = default)
+    public Task ResetAsync(string mode = "system", CancellationToken ct = default)
     {
         ResetCalls.Add(mode);
         return Task.CompletedTask;
     }
 
-    public override Task<byte[]> PeekAsync(uint address, uint size, CancellationToken ct = default)
+    public Task<byte[]> PeekAsync(uint address, uint size, CancellationToken ct = default)
     {
         if (FuseData.TryGetValue(address, out var data))
             return Task.FromResult(data.Take((int)size).ToArray());
-        // Return zeros for unmapped fuse addresses
         return Task.FromResult(new byte[size]);
     }
 }
@@ -304,7 +276,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_b", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: true);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();
@@ -342,7 +314,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_b", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: false);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();
@@ -373,7 +345,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_b", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: true);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();
@@ -408,7 +380,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_b", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: true);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();
@@ -440,7 +412,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_b", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: true);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true, skipDownloadModeCheck: true);
 
         // Act
         await orchestrator.RunFullRescueAsync();
@@ -466,7 +438,7 @@ public class RescueOrchestratorTests : IDisposable
         CreateBackupFile("vbmeta_a", CreateMinimalVbmetaImage());
 
         var mockClient = CreateMockClient(withTamperedBoot: false);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();
@@ -484,7 +456,7 @@ public class RescueOrchestratorTests : IDisposable
     {
         // Arrange
         var mockClient = CreateMockClient(withTamperedBoot: false);
-        var orchestrator = new RescueOrchestrator(mockClient, backupDir: "", dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, backupDir: "", dryRun: true, skipDownloadModeCheck: true);
 
         // Act — should not throw
         var report = await orchestrator.RunFullRescueAsync();
@@ -502,7 +474,7 @@ public class RescueOrchestratorTests : IDisposable
     {
         // Arrange — no backup files created
         var mockClient = CreateMockClient(withTamperedBoot: true);
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: true, skipDownloadModeCheck: true);
 
         // Act — should not throw
         var report = await orchestrator.RunFullRescueAsync();
@@ -564,7 +536,7 @@ public class RescueOrchestratorTests : IDisposable
         mockClient.PartitionData["sec"] = new byte[512];
         for (int i = 0; i < 512; i++) mockClient.PartitionData["sec"][i] = 0xFF;
 
-        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false);
+        var orchestrator = new RescueOrchestrator(mockClient, _testBackupDir, dryRun: false, skipDownloadModeCheck: true);
 
         // Act
         var report = await orchestrator.RunFullRescueAsync();

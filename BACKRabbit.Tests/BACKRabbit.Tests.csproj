@@ -19,6 +19,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BACKRabbit.MagiskCore\BACKRabbit.MagiskCore.csproj" />
     <ProjectReference Include="..\BACKRabbit.Firmware\BACKRabbit.Firmware.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Firehose\BACKRabbit.Protocol.Firehose.csproj" />
   </ItemGroup>
 
   <ItemGroup>

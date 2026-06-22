@@ -9,7 +9,7 @@ namespace BACKRabbit.Protocol.Firehose.Rescue;
 
 public class PartitionRestorer
 {
-    private readonly FirehoseClient _client;
+    private readonly IFirehoseClient _client;
     private readonly string _backupDir;
     private readonly RescueReport _report;
     private readonly bool _force;
@@ -24,7 +24,7 @@ public class PartitionRestorer
         "msadp",     // Modem debug policy — device-specific
     };
 
-    public PartitionRestorer(FirehoseClient client, string backupDir, RescueReport report, bool force = false)
+    public PartitionRestorer(IFirehoseClient client, string backupDir, RescueReport report, bool force = false)
     {
         _client = client;
         _backupDir = backupDir;
@@ -58,7 +58,19 @@ public class PartitionRestorer
 
             if (_neverRestore.Contains(name) && _force)
             {
-                Console.WriteLine($"  {name}: FORCE OVERRIDE — restoring despite blocklist (operator confirmed risk)");
+                Console.WriteLine($"  {name}: FORCE OVERRIDE — restoring despite blocklist");
+                Console.Write($"  Type the device model name to confirm (e.g., SM-F966U1): ");
+                var confirmation = Console.ReadLine()?.Trim() ?? "";
+                if (string.IsNullOrEmpty(confirmation) || confirmation.Length < 3)
+                {
+                    action.Action = "Skipped";
+                    action.SourceFile = "BLOCKED — force confirmation failed (empty input)";
+                    actions.Add(action);
+                    _report.RestoreActions.Add(action);
+                    Console.WriteLine($"  {name}: SKIPPED (force confirmation failed)");
+                    continue;
+                }
+                Console.WriteLine($"  {name}: Confirmation accepted — proceeding with force override");
             }
 
             var backupPath = Path.Combine(_backupDir, $"{name}.img");

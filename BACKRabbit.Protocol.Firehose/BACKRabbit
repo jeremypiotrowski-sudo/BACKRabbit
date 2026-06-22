@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SerialPort support for COM-port EDL transports (WinUsbTransport) -->
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Direct USB integration (Phase G): no reflection, compile-time safe -->
+    <ProjectReference Include="..\BACKRabbit.Usb\BACKRabbit.Usb.csproj" />
+  </ItemGroup>
+
+</Project>

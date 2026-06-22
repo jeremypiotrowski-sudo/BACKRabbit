@@ -11,7 +11,7 @@ namespace BACKRabbit.Protocol.Firehose.Rescue;
 
 public class PartitionDiagnostics
 {
-    private readonly FirehoseClient _client;
+    private readonly IFirehoseClient _client;
     private readonly RescueReport _report;
     private readonly string? _backupDir;
 
@@ -33,7 +33,7 @@ public class PartitionDiagnostics
         ("init_boot_b", 0, "MagiskDetect"),
     };
 
-    public PartitionDiagnostics(FirehoseClient client, RescueReport report, string? backupDir = null)
+    public PartitionDiagnostics(IFirehoseClient client, RescueReport report, string? backupDir = null)
     {
         _client = client;
         _report = report;
@@ -303,6 +303,119 @@ public class PartitionDiagnostics
 
         if (recs.Count == 0)
             recs.Add("Device appears clean. No rescue actions needed.");
+    }
+
+    /// <summary>
+    /// Full-GPT audit: iterate EVERY partition from PrintGptAsync, read it via firehose,
+    /// hash it, compare against stock firmware backup. Returns a FullGptAuditResult
+    /// with per-partition MATCH/MISMATCH/NO_STOCK_COMPARISON status.
+    /// </summary>
+    public async Task<FullGptAuditResult> RunFullGptAuditAsync(CancellationToken ct = default)
+    {
+        var result = new FullGptAuditResult();
+
+        // Get all partitions from GPT
+        List<GptPartitionEntry> gptEntries;
+        try
+        {
+            gptEntries = await _client.PrintGptAsync(0, ct);
+        }
+        catch (FirehoseException ex)
+        {
+            // GPT dump failed — return empty result with error
+            result.Entries.Add(new GptPartitionAuditEntry
+            {
+                PartitionName = "GPT_DUMP_FAILED",
+                Status = GptAuditStatus.Error,
+                ErrorMessage = ex.Message
+            });
+            return result;
+        }
+
+        foreach (var gptEntry in gptEntries)
+        {
+            var entry = new GptPartitionAuditEntry
+            {
+                PartitionName = gptEntry.Name,
+                PartitionSize = (long)(gptEntry.Sectors * 512),
+            };
+
+            try
+            {
+                // Read partition from device
+                var deviceData = await _client.ReadPartitionAsync(gptEntry.Name, 0, ct: ct);
+                entry.DeviceSha256 = ComputeSha256(deviceData);
+
+                // Check if stock image exists in backup directory
+                if (_backupDir != null)
+                {
+                    var stockPath = Path.Combine(_backupDir, $"{gptEntry.Name}.img");
+                    if (File.Exists(stockPath))
+                    {
+                        var stockData = await File.ReadAllBytesAsync(stockPath, ct);
+                        entry.StockSha256 = ComputeSha256(stockData);
+
+                        if (entry.DeviceSha256 == entry.StockSha256)
+                        {
+                            entry.Status = GptAuditStatus.Match;
+                        }
+                        else
+                        {
+                            entry.Status = GptAuditStatus.Mismatch;
+                            // Compute block-level diff: compare 512-byte sectors
+                            int sectorSize = 512;
+                            int minSectors = (int)Math.Min(deviceData.Length, stockData.Length) / sectorSize;
+                            for (int i = 0; i < minSectors; i++)
+                            {
+                                int offset = i * sectorSize;
+                                bool differs = false;
+                                for (int b = 0; b < sectorSize && (offset + b) < deviceData.Length && (offset + b) < stockData.Length; b++)
+                                {
+                                    if (deviceData[offset + b] != stockData[offset + b])
+                                    {
+                                        differs = true;
+                                        break;
+                                    }
+                                }
+                                if (differs)
+                                {
+                                    entry.DifferingSectorCount++;
+                                    entry.DifferingSectorAddresses.Add((long)i * sectorSize);
+                                }
+                            }
+                            // If sizes differ, count remaining sectors as differing
+                            if (deviceData.Length != stockData.Length)
+                            {
+                                int extraSectors = Math.Abs(deviceData.Length - stockData.Length) / sectorSize;
+                                entry.DifferingSectorCount += extraSectors;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        entry.Status = GptAuditStatus.NoStockComparison;
+                    }
+                }
+                else
+                {
+                    entry.Status = GptAuditStatus.NoStockComparison;
+                }
+            }
+            catch (FirehoseException ex)
+            {
+                entry.Status = GptAuditStatus.Error;
+                entry.ErrorMessage = $"Read failed: {ex.Message}";
+            }
+            catch (Exception ex)
+            {
+                entry.Status = GptAuditStatus.Error;
+                entry.ErrorMessage = ex.Message;
+            }
+
+            result.Entries.Add(entry);
+        }
+
+        return result;
     }
 
     private static string ComputeSha256(byte[] data)

@@ -1,0 +1,189 @@
+using System;
+using System.Buffers.Binary;
+using System.IO.Ports;
+using System.Threading;
+using System.Threading.Tasks;
+using BACKRabbit.Usb;
+
+namespace BACKRabbit.Protocol.Firehose;
+
+/// <summary>
+/// Concrete <see cref="IDeviceTransport"/> for Qualcomm EDL devices.
+/// Uses <see cref="SerialPort"/> for COM-port style EDL interfaces and
+/// <see cref="UsbDeviceManager"/> (LibUsbDotNet) for raw USB bulk endpoints.
+/// Synchronous USB reads/writes are bridged to async via
+/// <see cref="Task.Run(System.Action, System.Threading.CancellationToken)"/>.
+/// </summary>
+public class WinUsbTransport : IDeviceTransport
+{
+    private readonly string _devicePath;
+    private readonly bool _isSerial;
+    private SerialPort? _serialPort;
+    private UsbDeviceManager? _usbManager;
+    private bool _connected;
+
+    public bool IsConnected => _connected;
+    public string DevicePath => _devicePath;
+
+    public WinUsbTransport(string devicePath)
+    {
+        _devicePath = devicePath;
+        _isSerial = devicePath.StartsWith("COM", StringComparison.OrdinalIgnoreCase)
+                 || devicePath.StartsWith("/dev/tty", StringComparison.OrdinalIgnoreCase)
+                 || devicePath.StartsWith("/dev/cu.", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task ConnectAsync(CancellationToken ct = default)
+    {
+        if (_isSerial)
+            await ConnectSerialAsync(ct);
+        else
+            await ConnectUsbAsync(ct);
+        _connected = true;
+    }
+
+    private Task ConnectSerialAsync(CancellationToken ct)
+    {
+        return Task.Run(() =>
+        {
+            var sp = new SerialPort(_devicePath)
+            {
+                BaudRate = 115200,
+                DataBits = 8,
+                Parity = Parity.None,
+                StopBits = StopBits.One,
+                ReadTimeout = 5000,
+                WriteTimeout = 5000,
+            };
+            sp.Open();
+            _serialPort = sp;
+        }, ct);
+    }
+
+    private async Task ConnectUsbAsync(CancellationToken ct)
+    {
+        // Parse a VID:PID string like "05C6:9008". Defaults to Qualcomm EDL 9008.
+        int vid = FirehoseDeviceDetector.QualcommVendorId;
+        int pid = 0x9008;
+        var parts = _devicePath.Split(':');
+        if (parts.Length == 2
+            && int.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out var v)
+            && int.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out var p))
+        {
+            vid = v;
+            pid = p;
+        }
+
+        var manager = new UsbDeviceManager();
+        bool opened = await Task.Run(() => manager.Open(vid, pid), ct);
+        if (!opened)
+        {
+            manager.Dispose();
+            throw new InvalidOperationException(
+                $"Could not open USB device {vid:X4}:{pid:X4}. " +
+                "Ensure the device is in EDL mode and a WinUSB/libusb driver is installed " +
+                "(use Zadig on Windows: https://zadig.akeo.ie/).");
+        }
+        _usbManager = manager;
+    }
+
+    public Task DisconnectAsync()
+    {
+        return Task.Run(() =>
+        {
+            _connected = false;
+            if (_serialPort != null)
+            {
+                try { _serialPort.Close(); } catch { }
+                try { _serialPort.Dispose(); } catch { }
+                _serialPort = null;
+            }
+            _usbManager?.Dispose();
+            _usbManager = null;
+        });
+    }
+
+    public Task SendPacketAsync(SaharaPacket packet, CancellationToken ct = default)
+    {
+        var data = packet.Serialize();
+        return SendRawAsync(data, ct);
+    }
+
+    public async Task<SaharaPacket> ReceivePacketAsync(CancellationToken ct = default)
+    {
+        // Read 8-byte header first
+        var header = await ReceiveRawAsync(8, ct);
+        if (header.Length < 8)
+            throw new SaharaProtocolException("Failed to receive packet header");
+
+        uint command = BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(0, 4));
+        uint length = BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(4, 8));
+
+        int payloadLen = (int)length - 8;
+        byte[] payload = payloadLen > 0
+            ? await ReceiveRawAsync(payloadLen, ct)
+            : Array.Empty<byte>();
+
+        return new SaharaPacket(command, payload);
+    }
+
+    public Task SendRawAsync(byte[] data, CancellationToken ct = default)
+    {
+        return Task.Run(() =>
+        {
+            if (_serialPort != null)
+            {
+                _serialPort.Write(data, 0, data.Length);
+                return;
+            }
+
+            if (_usbManager != null)
+            {
+                int transferred = _usbManager.Write(data, 5000);
+                if (transferred != data.Length)
+                    throw new InvalidOperationException(
+                        $"USB write incomplete: {transferred}/{data.Length} bytes.");
+                return;
+            }
+
+            throw new InvalidOperationException("Transport not connected");
+        }, ct);
+    }
+
+    public Task<byte[]> ReceiveRawAsync(int maxLength, CancellationToken ct = default)
+    {
+        return Task.Run(() =>
+        {
+            var buffer = new byte[maxLength];
+            int read;
+
+            if (_serialPort != null)
+            {
+                int available = _serialPort.BytesToRead;
+                if (available <= 0)
+                {
+                    try { read = _serialPort.Read(buffer, 0, Math.Min(maxLength, 1)); }
+                    catch (TimeoutException) { return Array.Empty<byte>(); }
+                }
+                else
+                {
+                    int toRead = Math.Min(maxLength, available);
+                    read = _serialPort.Read(buffer, 0, toRead);
+                }
+            }
+            else if (_usbManager != null)
+            {
+                read = _usbManager.Read(buffer, 5000);
+            }
+            else
+            {
+                throw new InvalidOperationException("Transport not connected");
+            }
+
+            if (read <= 0) return Array.Empty<byte>();
+            var result = new byte[read];
+            Array.Copy(buffer, result, read);
+            return result;
+        }, ct);
+    }
+}

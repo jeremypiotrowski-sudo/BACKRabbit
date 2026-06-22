@@ -203,6 +203,122 @@ public event EventHandler<UsbDeviceEventArgs>? DeviceConnected;
     }
 
     /// <summary>
+    /// Enumerate ALL Android ADB devices regardless of vendor.
+    /// Covers Samsung (0x04E8), Google (0x18D1), Nokia/HMD (0x0421),
+    /// Xiaomi (0x2717), OnePlus (0x2A70), Motorola (0x22B8), etc.
+    /// </summary>
+    public static List<BackRabbitUsbDeviceInfo> EnumerateAllAdbDevices()
+    {
+        var devices = new List<BackRabbitUsbDeviceInfo>();
+
+        // Known Android ADB vendor IDs (non-exhaustive)
+        var knownAdbVids = new HashSet<int>
+        {
+            0x04E8, // Samsung
+            0x18D1, // Google
+            0x0421, // Nokia / HMD Global
+            0x2717, // Xiaomi
+            0x2A70, // OnePlus
+            0x22B8, // Motorola
+            0x0BB4, // HTC
+            0x1004, // LG
+            0x109B, // Sony
+            0x17EF, // Lenovo
+            0x2257, // ASUS
+            0x2B4C, // Nothing
+            0x05C6, // Qualcomm (EDL mode)
+        };
+
+        var deviceList = UsbDevice.AllDevices;
+
+        foreach (object obj in deviceList)
+        {
+            if (obj is UsbRegistry usbRegistry)
+            {
+                var vid = usbRegistry.Vid;
+                var pid = usbRegistry.Pid;
+
+                // Accept known Android VIDs OR any device with ADB interface class
+                if (knownAdbVids.Contains(vid) || IsAdbInterface(usbRegistry))
+                {
+                    var info = new BackRabbitUsbDeviceInfo
+                    {
+                        VendorId = (ushort)vid,
+                        ProductId = (ushort)pid,
+                        SerialNumber = "",
+                        Manufacturer = "",
+                        Product = usbRegistry.Name ?? "",
+                        DeviceMode = DetectDeviceMode(vid, pid),
+                        IsOpen = false
+                    };
+                    devices.Add(info);
+                }
+            }
+        }
+
+        return devices;
+    }
+
+    /// <summary>
+    /// Check if a USB device has an ADB interface (class 0xFF, subclass 0x42, protocol 0x01).
+    /// This catches devices from unknown vendors that expose ADB.
+    /// </summary>
+    private static bool IsAdbInterface(UsbRegistry registry)
+    {
+        try
+        {
+            var device = registry.Device;
+            if (device == null) return false;
+
+            foreach (var config in device.Configs)
+            {
+                foreach (var iface in config.InterfaceInfoList)
+                {
+                    var desc = iface.Descriptor;
+                    // ADB interface: class=0xFF (vendor-specific), subclass=0x42, protocol=0x01
+                    if ((byte)desc.Class == 0xFF && desc.SubClass == 0x42 && desc.Protocol == 0x01)
+                        return true;
+                }
+            }
+        }
+        catch { /* ignore */ }
+        return false;
+    }
+
+    /// <summary>
+    /// Detect device mode from VID/PID, supporting non-Samsung devices.
+    /// </summary>
+    private static DeviceMode DetectDeviceMode(int vid, int pid)
+    {
+        // Samsung-specific PIDs
+        if (vid == SAMSUNG_VID)
+            return GetDeviceModeStatic(pid);
+
+        // Generic ADB PIDs (Google standard)
+        if (pid == 0x4EE7 || pid == 0x4EE2 || pid == 0x4EE1 || pid == 0x4EE0)
+            return DeviceMode.ADB;
+
+        // Generic Fastboot PIDs
+        if (pid == 0x4EE0 || pid == 0x0FFF || pid == 0xD00D)
+            return DeviceMode.Fastboot;
+
+        // Qualcomm EDL
+        if (vid == 0x05C6 && (pid == 0x9008 || pid == 0x900E || pid == 0x901D))
+            return DeviceMode.DownloadMode;
+
+        // Default: assume ADB for known Android VIDs
+        return DeviceMode.ADB;
+    }
+
+    private static DeviceMode GetDeviceModeStatic(int productId)
+    {
+        if (DOWNLOAD_MODE_PIDS.Contains(productId)) return DeviceMode.DownloadMode;
+        if (ADB_PIDS.Contains(productId)) return DeviceMode.ADB;
+        if (FASTBOOT_PIDS.Contains(productId)) return DeviceMode.Fastboot;
+        return DeviceMode.Unknown;
+    }
+
+    /// <summary>
     /// Open Samsung device by serial number
     /// </summary>
     public bool OpenDevice(string serialNumber)

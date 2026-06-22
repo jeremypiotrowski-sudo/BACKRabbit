@@ -13,7 +13,7 @@ namespace BACKRabbit.Protocol.Firehose;
 /// read/write/erase partitions, dump GPT, peek/poke memory, and reset the
 /// device.
 /// </summary>
-public class FirehoseClient
+public class FirehoseClient : IFirehoseClient
 {
     private readonly IDeviceTransport _transport;
     private readonly SaharaStateMachine _stateMachine;

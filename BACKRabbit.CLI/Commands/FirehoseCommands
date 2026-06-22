@@ -1,0 +1,319 @@
+using System;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using BACKRabbit.Protocol.Firehose;
+
+namespace BACKRabbit.CLI.Commands;
+
+/// <summary>
+/// Registers the <c>firehose</c> command group (Qualcomm EDL Firehose operations)
+/// with the BACKRabbit CLI using the System.CommandLine pattern.
+/// </summary>
+public static class FirehoseCommands
+{
+    // Options are created per-command because System.CommandLine does not
+    // allow the same Option instance to be attached to multiple commands.
+    private static Option<string> DeviceOption() =>
+        new Option<string>("--device", "Device path (COM port or VID:PID, e.g. 05C6:9008)");
+
+    private static Option<string> LoaderOption() =>
+        new Option<string>("--loader", "Path to Firehose programmer (.elf/.mbn)");
+
+    private static Option<int> LunOption() =>
+        new Option<int>("--lun", () => 0, "Logical Unit Number (UFS LUN / eMMC partition)");
+
+    private static Option<string> PartitionOption() =>
+        new Option<string>("--partition", "Partition name");
+
+    private static Option<string> OutputOption() =>
+        new Option<string>("--output", "Output file path");
+
+    private static Option<string> InputOption() =>
+        new Option<string>("--input", "Input file to flash");
+
+    private static Option<string> ModeOption() =>
+        new Option<string>("--mode", () => "system", "Reset mode: edl, system, off");
+
+    /// <summary>Build the full firehose command tree.</summary>
+    public static Command CreateCommand()
+    {
+        var firehoseCmd = new Command("firehose", "Qualcomm EDL Firehose operations");
+
+        // ─── detect ───────────────────────────────────────────
+        var detectCmd = new Command("detect", "List connected EDL devices");
+        detectCmd.SetHandler(() =>
+        {
+            var devices = FirehoseDeviceDetector.EnumerateDevices();
+            if (devices.Count == 0)
+            {
+                Console.WriteLine("No Qualcomm EDL devices detected.");
+                Console.WriteLine("Ensure device is in EDL mode (VID=05C6, PID=9008/900E/901D).");
+                return Task.CompletedTask;
+            }
+            Console.WriteLine($"Found {devices.Count} EDL device(s):");
+            foreach (var dev in devices)
+                Console.WriteLine($"  {dev}");
+            return Task.CompletedTask;
+        });
+
+        // ─── info ─────────────────────────────────────────────
+        var infoCmd = new Command("info", "Show chip info for a device");
+        var infoDevice = DeviceOption();
+        var infoLoader = LoaderOption();
+        infoCmd.AddOption(infoDevice);
+        infoCmd.AddOption(infoLoader);
+        infoCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var devicePath = ctx.ParseResult.GetValueForOption(infoDevice) ?? AutoDetectDevice();
+            if (devicePath == null) return;
+
+            var transport = new WinUsbTransport(devicePath);
+            var sm = new SaharaStateMachine();
+            var db = LoaderDatabase.FromDirectory(
+                Path.Combine(AppContext.BaseDirectory, "Loaders"));
+
+            var detector = new LoaderDetector(transport, db);
+            var result = await detector.DetectAsync();
+
+            Console.WriteLine($"Device: {devicePath}");
+            Console.WriteLine($"  Chip: {result.ChipInfo}");
+            Console.WriteLine($"  Loader: {(result.Success ? result.Loader!.FilePath : "NONE — manual loader required")}");
+            Console.WriteLine($"  Fused: {result.ChipInfo?.IsFused}");
+
+            await transport.DisconnectAsync();
+        });
+
+        // ─── printgpt ─────────────────────────────────────────
+        var printgptCmd = new Command("printgpt", "Dump GPT partition table");
+        var gptDevice = DeviceOption();
+        var gptLoader = LoaderOption();
+        var gptLun = LunOption();
+        printgptCmd.AddOption(gptDevice);
+        printgptCmd.AddOption(gptLoader);
+        printgptCmd.AddOption(gptLun);
+        printgptCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx, gptDevice, gptLoader);
+            var lun = ctx.ParseResult.GetValueForOption(gptLun);
+            var entries = await client.PrintGptAsync(lun);
+
+            Console.WriteLine($"GPT Table (LUN {lun}):");
+            foreach (var entry in entries)
+                Console.WriteLine($"  {entry.Name,-24} start={entry.StartSector,10} sectors={entry.Sectors,10}");
+
+            await client.DisconnectAsync();
+        });
+
+        // ─── dump ─────────────────────────────────────────────
+        var dumpCmd = new Command("dump", "Read a partition to file");
+        var dumpDevice = DeviceOption();
+        var dumpLoader = LoaderOption();
+        var dumpLun = LunOption();
+        var dumpPartition = PartitionOption();
+        var dumpOutput = OutputOption();
+        dumpCmd.AddOption(dumpDevice);
+        dumpCmd.AddOption(dumpLoader);
+        dumpCmd.AddOption(dumpLun);
+        dumpCmd.AddOption(dumpPartition);
+        dumpCmd.AddOption(dumpOutput);
+        dumpCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var partition = ctx.ParseResult.GetValueForOption(dumpPartition);
+            var output = ctx.ParseResult.GetValueForOption(dumpOutput);
+            if (string.IsNullOrEmpty(partition) || string.IsNullOrEmpty(output))
+            {
+                Console.WriteLine("Usage: backrabbit firehose dump --partition <name> --output <file> [--lun <n>] [--loader <path>]");
+                return;
+            }
+
+            var (client, _) = await InitClientAsync(ctx, dumpDevice, dumpLoader);
+            var lun = ctx.ParseResult.GetValueForOption(dumpLun);
+
+            Console.WriteLine($"Reading partition '{partition}' (LUN {lun})...");
+            var data = await client.ReadPartitionAsync(partition, lun);
+            await File.WriteAllBytesAsync(output, data);
+            Console.WriteLine($"Wrote {data.Length:N0} bytes to {output}");
+
+            await client.DisconnectAsync();
+        });
+
+        // ─── flash ────────────────────────────────────────────
+        var flashCmd = new Command("flash", "Write a file to partition");
+        var flashDevice = DeviceOption();
+        var flashLoader = LoaderOption();
+        var flashLun = LunOption();
+        var flashPartition = PartitionOption();
+        var flashInput = InputOption();
+        flashCmd.AddOption(flashDevice);
+        flashCmd.AddOption(flashLoader);
+        flashCmd.AddOption(flashLun);
+        flashCmd.AddOption(flashPartition);
+        flashCmd.AddOption(flashInput);
+        flashCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var partition = ctx.ParseResult.GetValueForOption(flashPartition);
+            var input = ctx.ParseResult.GetValueForOption(flashInput);
+            if (string.IsNullOrEmpty(partition) || string.IsNullOrEmpty(input))
+            {
+                Console.WriteLine("Usage: backrabbit firehose flash --partition <name> --input <file> [--lun <n>] [--loader <path>]");
+                return;
+            }
+            if (!File.Exists(input))
+            {
+                Console.WriteLine($"File not found: {input}");
+                return;
+            }
+
+            var (client, _) = await InitClientAsync(ctx, flashDevice, flashLoader);
+            var lun = ctx.ParseResult.GetValueForOption(flashLun);
+            var data = await File.ReadAllBytesAsync(input);
+
+            Console.WriteLine($"Writing {data.Length:N0} bytes to '{partition}' (LUN {lun})...");
+            var ok = await client.WritePartitionAsync(partition, data, lun);
+            Console.WriteLine(ok ? "Write successful." : "Write FAILED.");
+
+            await client.DisconnectAsync();
+        });
+
+        // ─── erase ────────────────────────────────────────────
+        var eraseCmd = new Command("erase", "Erase a partition");
+        var eraseDevice = DeviceOption();
+        var eraseLoader = LoaderOption();
+        var eraseLun = LunOption();
+        var erasePartition = PartitionOption();
+        eraseCmd.AddOption(eraseDevice);
+        eraseCmd.AddOption(eraseLoader);
+        eraseCmd.AddOption(eraseLun);
+        eraseCmd.AddOption(erasePartition);
+        eraseCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var partition = ctx.ParseResult.GetValueForOption(erasePartition);
+            if (string.IsNullOrEmpty(partition))
+            {
+                Console.WriteLine("Usage: backrabbit firehose erase --partition <name> [--lun <n>] [--loader <path>]");
+                return;
+            }
+
+            var (client, _) = await InitClientAsync(ctx, eraseDevice, eraseLoader);
+            var lun = ctx.ParseResult.GetValueForOption(eraseLun);
+            Console.WriteLine($"Erasing '{partition}' (LUN {lun})...");
+            var ok = await client.ErasePartitionAsync(partition, lun);
+            Console.WriteLine(ok ? "Erase successful." : "Erase FAILED.");
+            await client.DisconnectAsync();
+        });
+
+        // ─── reset ────────────────────────────────────────────
+        var resetCmd = new Command("reset", "Reboot device");
+        var resetDevice = DeviceOption();
+        var resetLoader = LoaderOption();
+        var resetMode = ModeOption();
+        resetCmd.AddOption(resetDevice);
+        resetCmd.AddOption(resetLoader);
+        resetCmd.AddOption(resetMode);
+        resetCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var mode = ctx.ParseResult.GetValueForOption(resetMode) ?? "system";
+            var (client, _) = await InitClientAsync(ctx, resetDevice, resetLoader);
+            Console.WriteLine($"Resetting to '{mode}'...");
+            await client.ResetAsync(mode);
+            // Device resets — no disconnect needed (transport may already be gone)
+        });
+
+        // ─── nop ──────────────────────────────────────────────
+        var nopCmd = new Command("nop", "Test if Firehose is alive");
+        var nopDevice = DeviceOption();
+        var nopLoader = LoaderOption();
+        nopCmd.AddOption(nopDevice);
+        nopCmd.AddOption(nopLoader);
+        nopCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx, nopDevice, nopLoader);
+            var ok = await client.NopAsync();
+            Console.WriteLine(ok ? "NOP: ACK — Firehose is alive." : "NOP: NAK — Firehose not responding.");
+            await client.DisconnectAsync();
+        });
+
+        // ─── storageinfo ──────────────────────────────────────
+        var storageCmd = new Command("storageinfo", "Query storage type");
+        var storageDevice = DeviceOption();
+        var storageLoader = LoaderOption();
+        storageCmd.AddOption(storageDevice);
+        storageCmd.AddOption(storageLoader);
+        storageCmd.SetHandler(async (InvocationContext ctx) =>
+        {
+            var (client, _) = await InitClientAsync(ctx, storageDevice, storageLoader);
+            var info = await client.GetStorageInfoAsync();
+            Console.WriteLine($"Storage: {info}");
+            await client.DisconnectAsync();
+        });
+
+        firehoseCmd.AddCommand(detectCmd);
+        firehoseCmd.AddCommand(infoCmd);
+        firehoseCmd.AddCommand(printgptCmd);
+        firehoseCmd.AddCommand(dumpCmd);
+        firehoseCmd.AddCommand(flashCmd);
+        firehoseCmd.AddCommand(eraseCmd);
+        firehoseCmd.AddCommand(resetCmd);
+        firehoseCmd.AddCommand(nopCmd);
+        firehoseCmd.AddCommand(storageCmd);
+
+        return firehoseCmd;
+    }
+
+    // ─── HELPERS ──────────────────────────────────────────────
+
+    private static string? AutoDetectDevice()
+    {
+        var devices = FirehoseDeviceDetector.EnumerateDevices();
+        if (devices.Count == 0)
+        {
+            Console.WriteLine("No EDL devices found. Connect a device in EDL mode.");
+            return null;
+        }
+        var path = devices[0].DevicePath;
+        Console.WriteLine($"Auto-detected: {path}");
+        return path;
+    }
+
+    private static async Task<(FirehoseClient client, string loaderPath)> InitClientAsync(
+        InvocationContext ctx, Option<string> deviceOption, Option<string> loaderOption)
+    {
+        var devicePath = ctx.ParseResult.GetValueForOption(deviceOption) ?? AutoDetectDevice();
+        if (devicePath == null)
+            throw new InvalidOperationException("No EDL device available.");
+
+        var loaderPath = ctx.ParseResult.GetValueForOption(loaderOption) ?? AutoDetectLoader();
+        if (loaderPath == null)
+            throw new InvalidOperationException(
+                "No loader specified. Use --loader <path> or place .elf/.mbn files in ./Loaders/");
+
+        var transport = new WinUsbTransport(devicePath);
+        var sm = new SaharaStateMachine();
+        var client = new FirehoseClient(transport, sm);
+
+        await transport.ConnectAsync();
+        await client.InitializeAsync(loaderPath);
+
+        return (client, loaderPath);
+    }
+
+    private static string? AutoDetectLoader()
+    {
+        var dir = Path.Combine(AppContext.BaseDirectory, "Loaders");
+        if (!Directory.Exists(dir)) return null;
+        var files = Directory.GetFiles(dir, "*.elf")
+            .Concat(Directory.GetFiles(dir, "*.mbn"))
+            .Concat(Directory.GetFiles(dir, "*.bin"))
+            .ToList();
+        if (files.Count > 0)
+        {
+            Console.WriteLine($"Auto-selected loader: {Path.GetFileName(files[0])}");
+            return files[0];
+        }
+        return null;
+    }
+}

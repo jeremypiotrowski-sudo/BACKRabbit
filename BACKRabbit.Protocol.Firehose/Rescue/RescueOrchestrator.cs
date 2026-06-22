@@ -10,13 +10,13 @@ namespace BACKRabbit.Protocol.Firehose.Rescue;
 
 public class RescueOrchestrator
 {
-    private readonly FirehoseClient _client;
+    private readonly IFirehoseClient _client;
     private readonly string _backupDir;
     private readonly bool _dryRun;
     private readonly bool _force;
     private readonly bool _skipDownloadModeCheck;
 
-    public RescueOrchestrator(FirehoseClient client, string backupDir, bool dryRun = false, bool force = false, bool skipDownloadModeCheck = false)
+    public RescueOrchestrator(IFirehoseClient client, string backupDir, bool dryRun = false, bool force = false, bool skipDownloadModeCheck = false)
     {
         _client = client;
         _backupDir = backupDir;
@@ -78,11 +78,18 @@ public class RescueOrchestrator
             Console.WriteLine("  No backup directory — diagnosis-only mode.");
         }
 
-        // [2/7] Diagnose
-        Console.WriteLine("\n[2/7] Diagnosing partitions...");
+        // [2/7] Diagnose — full-GPT audit + critical partition analysis
+        Console.WriteLine("\n[2/7] Diagnosing partitions (full-GPT audit)...");
         var diagnostics = new PartitionDiagnostics(_client, report, _backupDir);
+
+        // Run full-GPT audit first (compares ALL partitions against stock)
+        var gptAudit = await diagnostics.RunFullGptAuditAsync(ct);
+        report.FullGptAudit = gptAudit;
+        Console.WriteLine($"  Full-GPT audit: {gptAudit.TotalPartitions} partitions, {gptAudit.MatchCount} match, {gptAudit.MismatchCount} mismatch, {gptAudit.NoStockComparisonCount} no stock comparison");
+
+        // Then run the existing critical partition analysis (boot/vbmeta/devinfo/etc.)
         await diagnostics.RunAsync(ct);
-        Console.WriteLine($"  Done. {report.Partitions.Count} partitions analyzed. Verdict: {report.Verdict}");
+        Console.WriteLine($"  Done. {report.Partitions.Count} critical partitions analyzed. Verdict: {report.Verdict}");
 
         // [3/7] Fuse audit
         Console.WriteLine("\n[3/7] Auditing QFuses...");

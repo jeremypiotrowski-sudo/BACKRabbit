@@ -24,6 +24,7 @@ public class RescueReport
     public QFuseAuditResult? FuseAudit { get; set; }
     public List<RestoreAction> RestoreActions { get; set; } = new();
     public List<MagiskRemovalResult> MagiskRemovals { get; set; } = new();
+    public FullGptAuditResult? FullGptAudit { get; set; }
     public OverallVerdict Verdict { get; set; }
     public List<string> Recommendations { get; set; } = new();
 

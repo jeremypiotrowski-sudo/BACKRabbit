@@ -1,0 +1,222 @@
+using System;
+using System.Buffers.Binary;
+using System.IO;
+using System.IO.Ports;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
+using BACKRabbit.Usb;
+
+namespace BACKRabbit.Protocol.Firehose;
+
+/// <summary>
+/// Concrete <see cref="IDeviceTransport"/> for Qualcomm EDL devices.
+/// Uses <see cref="UsbDeviceManager"/> (LibUsbDotNet) for USB bulk endpoints,
+/// <see cref="SerialPort"/> on Windows for COM ports, and <see cref="FileStream"/>
+/// on Linux/macOS for /dev/tty* serial devices.
+/// </summary>
+public class WinUsbTransport : IDeviceTransport
+{
+    private readonly string _devicePath;
+    private int _vid;
+    private int _pid;
+    private readonly bool _isSerial;
+    private UsbDeviceManager? _usbManager;
+    private SerialPort? _serialPort;        // Windows only
+    private FileStream? _serialStream;       // Linux/macOS fallback
+    private bool _connected;
+
+    public bool IsConnected => _connected;
+    public string DevicePath => _devicePath;
+
+    public WinUsbTransport(int vid, int pid)
+    {
+        _vid = vid;
+        _pid = pid;
+        _devicePath = $"USB\\VID_{vid:X4}&PID_{pid:X4}";
+        _isSerial = false;
+    }
+
+    public WinUsbTransport(string devicePath)
+    {
+        _devicePath = devicePath;
+        _isSerial = devicePath.StartsWith("COM", StringComparison.OrdinalIgnoreCase)
+                 || devicePath.StartsWith("/dev/tty", StringComparison.OrdinalIgnoreCase)
+                 || devicePath.StartsWith("/dev/cu.", StringComparison.OrdinalIgnoreCase);
+
+        if (!_isSerial)
+        {
+            // Accept "VID_xxxx&PID_xxxx" or "xxxx:xxxx" style paths
+            var vidIdx = devicePath.IndexOf("VID_", StringComparison.OrdinalIgnoreCase);
+            var pidIdx = devicePath.IndexOf("PID_", StringComparison.OrdinalIgnoreCase);
+            if (vidIdx >= 0 && pidIdx >= 0)
+            {
+                int.TryParse(devicePath.AsSpan(vidIdx + 4, 4),
+                    System.Globalization.NumberStyles.HexNumber, null, out _vid);
+                int.TryParse(devicePath.AsSpan(pidIdx + 4, 4),
+                    System.Globalization.NumberStyles.HexNumber, null, out _pid);
+            }
+            else
+            {
+                // Try "VVVV:PPPP" format
+                var parts = devicePath.Split(':');
+                if (parts.Length == 2
+                    && int.TryParse(parts[0], System.Globalization.NumberStyles.HexNumber, null, out var v)
+                    && int.TryParse(parts[1], System.Globalization.NumberStyles.HexNumber, null, out var p))
+                {
+                    _vid = v;
+                    _pid = p;
+                }
+            }
+        }
+    }
+
+    public async Task ConnectAsync(CancellationToken ct = default)
+    {
+        if (_isSerial)
+            await ConnectSerialAsync(ct);
+        else
+            await ConnectUsbAsync(ct);
+        _connected = true;
+    }
+
+    private Task ConnectSerialAsync(CancellationToken ct)
+    {
+        return Task.Run(() =>
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _serialPort = new SerialPort(_devicePath)
+                {
+                    BaudRate = 115200,
+                    DataBits = 8,
+                    Parity = Parity.None,
+                    StopBits = StopBits.One,
+                    ReadTimeout = 5000,
+                    WriteTimeout = 5000,
+                };
+                _serialPort.Open();
+            }
+            else
+            {
+                // Linux/macOS: serial port is a file
+                _serialStream = new FileStream(
+                    _devicePath,
+                    FileMode.Open,
+                    FileAccess.ReadWrite,
+                    FileShare.None,
+                    bufferSize: 4096,
+                    useAsync: true);
+            }
+        }, ct);
+    }
+
+    private Task ConnectUsbAsync(CancellationToken ct)
+    {
+        return Task.Run(() =>
+        {
+            if (_vid == 0 || _pid == 0)
+                throw new InvalidOperationException(
+                    "Cannot open USB device without VID/PID. " +
+                    "Use WinUsbTransport(int vid, int pid) or a path containing VID_xxxx&PID_xxxx.");
+
+            _usbManager = new UsbDeviceManager();
+            if (!_usbManager.Open(_vid, _pid))
+            {
+                _usbManager.Dispose();
+                _usbManager = null;
+                throw new InvalidOperationException(
+                    $"Failed to open USB device VID=0x{_vid:X4} PID=0x{_pid:X4}. " +
+                    "Ensure device is in EDL mode and WinUSB driver is installed " +
+                    "(use Zadig on Windows: https://zadig.akeo.ie/).");
+            }
+        }, ct);
+    }
+
+    public Task DisconnectAsync()
+    {
+        return Task.Run(() =>
+        {
+            _connected = false;
+            if (_serialPort != null) { try { _serialPort.Close(); } catch { } try { _serialPort.Dispose(); } catch { } _serialPort = null; }
+            if (_serialStream != null) { try { _serialStream.Dispose(); } catch { } _serialStream = null; }
+            if (_usbManager != null) { try { _usbManager.Dispose(); } catch { } _usbManager = null; }
+        });
+    }
+
+    public Task SendPacketAsync(SaharaPacket packet, CancellationToken ct = default)
+        => SendRawAsync(packet.Serialize(), ct);
+
+    public async Task<SaharaPacket> ReceivePacketAsync(CancellationToken ct = default)
+    {
+        var header = await ReceiveRawAsync(8, ct);
+        if (header.Length < 8)
+            throw new SaharaProtocolException("Failed to receive packet header");
+
+        uint command = BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(0, 4));
+        uint length = BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(4, 8));
+        int payloadLen = (int)length - 8;
+        byte[] payload = payloadLen > 0 ? await ReceiveRawAsync(payloadLen, ct) : Array.Empty<byte>();
+
+        return new SaharaPacket(command, payload);
+    }
+
+    public Task SendRawAsync(byte[] data, CancellationToken ct = default)
+    {
+        return Task.Run(() =>
+        {
+            if (_serialPort != null)
+                _serialPort.Write(data, 0, data.Length);
+            else if (_serialStream != null)
+                _serialStream.Write(data, 0, data.Length);
+            else if (_usbManager != null)
+            {
+                int written = _usbManager.Write(data, 5000);
+                if (written != data.Length)
+                    throw new InvalidOperationException($"USB write incomplete: {written} of {data.Length} bytes");
+            }
+            else
+                throw new InvalidOperationException("Transport not connected");
+        }, ct);
+    }
+
+    public Task<byte[]> ReceiveRawAsync(int maxLength, CancellationToken ct = default)
+    {
+        return Task.Run(() =>
+        {
+            var buffer = new byte[maxLength];
+            int read;
+
+            if (_serialPort != null)
+            {
+                int available = _serialPort.BytesToRead;
+                if (available <= 0)
+                {
+                    try { read = _serialPort.Read(buffer, 0, Math.Min(maxLength, 1)); }
+                    catch (TimeoutException) { return Array.Empty<byte>(); }
+                }
+                else
+                {
+                    read = _serialPort.Read(buffer, 0, Math.Min(maxLength, available));
+                }
+            }
+            else if (_serialStream != null)
+            {
+                read = _serialStream.Read(buffer, 0, maxLength);
+            }
+            else if (_usbManager != null)
+            {
+                read = _usbManager.Read(buffer, 5000);
+            }
+            else
+            {
+                throw new InvalidOperationException("Transport not connected");
+            }
+
+            if (read <= 0) return Array.Empty<byte>();
+            var result = new byte[read];
+            Array.Copy(buffer, result, read);
+            return result;
+        }, ct);
+    }
+}

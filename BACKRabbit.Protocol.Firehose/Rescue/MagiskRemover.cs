@@ -12,11 +12,11 @@ namespace BACKRabbit.Protocol.Firehose.Rescue;
 
 public class MagiskRemover
 {
-    private readonly FirehoseClient _client;
+    private readonly IFirehoseClient _client;
     private readonly string _backupDir;
     private readonly RescueReport _report;
 
-    public MagiskRemover(FirehoseClient client, string backupDir, RescueReport report)
+    public MagiskRemover(IFirehoseClient client, string backupDir, RescueReport report)
     {
         _client = client;
         _backupDir = backupDir;

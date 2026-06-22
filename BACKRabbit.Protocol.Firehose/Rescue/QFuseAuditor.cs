@@ -110,10 +110,10 @@ public static class QFuseDatabase
 
 public class QFuseAuditor
 {
-    private readonly FirehoseClient _client;
+    private readonly IFirehoseClient _client;
     private readonly string? _socModel;
 
-    public QFuseAuditor(FirehoseClient client, string? socModel = null)
+    public QFuseAuditor(IFirehoseClient client, string? socModel = null)
     {
         _client = client;
         _socModel = socModel ?? QFuseDatabase.GetSocModel(client.ChipInfo?.MsmId ?? 0);
