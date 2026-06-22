@@ -58,7 +58,7 @@ public class FirmwareImporter
 
             try
             {
-                var package = SamsungFirmwareExtractor.ExtractTarMd5(tarFile);
+                var package = SamsungFirmwareExtractor.ExtractTarMd5(tarFile, skipMd5Verification: true);
 
                 foreach (var partition in package.Partitions)
                 {

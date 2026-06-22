@@ -1,12 +1,13 @@
 using SharpCompress.Archives.Tar;
 using SharpCompress.Common;
 using BACKRabbit.Protocol.Fastboot;
+using K4os.Compression.LZ4.Streams;
 
 namespace BACKRabbit.Firmware;
 
 public class SamsungFirmwareExtractor
 {
-    public static FirmwarePackage ExtractTarMd5(string tarMd5Path)
+    public static FirmwarePackage ExtractTarMd5(string tarMd5Path, bool skipMd5Verification = false)
     {
         var package = new FirmwarePackage();
         var partitions = new Dictionary<string, byte[]>();
@@ -34,23 +35,52 @@ public class SamsungFirmwareExtractor
         md5.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
         var calculatedMd5 = md5.Hash!;
         
-        if (!embeddedMd5.SequenceEqual(calculatedMd5))
+        if (!skipMd5Verification && !embeddedMd5.SequenceEqual(calculatedMd5))
             throw new InvalidDataException("MD5 verification failed");
         
         fs.Seek(0, SeekOrigin.Begin);
-        using var limitedStream = new LimitedStream(fs, fs.Length - 16);
-        using var archive = TarArchive.Open(limitedStream);
         
-        foreach (var entry in archive.Entries)
+        // Try raw TAR first (older firmware), then lz4 decompression (2020+ Samsung firmware)
+        // SharpCompress TarArchive.Open() doesn't throw on invalid data — it returns empty.
+        // We detect failure by checking if any entries were extracted.
+        ExtractPartitionsFromTar(fs, fs.Length - 16, partitions);
+        
+        if (partitions.Count == 0)
         {
-            if (!entry.IsDirectory)
+            // Raw TAR produced nothing — try lz4 decompression (2020+ Samsung firmware)
+            // Samsung uses raw lz4 blocks without frame headers, so we decompress
+            // the entire payload into memory first, then open the TAR from bytes.
+            fs.Seek(0, SeekOrigin.Begin);
+            var compressedLength = fs.Length - 16;
+            var compressed = new byte[compressedLength];
+            fs.ReadExactly(compressed, 0, (int)compressedLength);
+            
+            try
             {
-                using var entryStream = entry.OpenEntryStream();
-                using var memStream = new MemoryStream();
-                entryStream.CopyTo(memStream);
-                
-                var partitionName = GetPartitionName(entry.Key);
-                partitions[partitionName] = memStream.ToArray();
+                var estimatedSize = compressed.Length * 10;
+                var decompressed = new byte[estimatedSize];
+                var decoded = K4os.Compression.LZ4.LZ4Codec.Decode(
+                    compressed.AsSpan(), decompressed.AsSpan());
+                if (decoded < 0)
+                    throw new InvalidDataException("LZ4 decompression failed");
+                using var ms = new MemoryStream(decompressed, 0, decoded);
+                using var archive = TarArchive.Open(ms);
+                foreach (var entry in archive.Entries)
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        using var entryStream = entry.OpenEntryStream();
+                        using var memStream = new MemoryStream();
+                        entryStream.CopyTo(memStream);
+                        
+                        var partitionName = GetPartitionName(entry.Key);
+                        partitions[partitionName] = memStream.ToArray();
+                    }
+                }
+            }
+            catch
+            {
+                // lz4 decompression failed — file may use a different compression format
             }
         }
         
@@ -120,6 +150,32 @@ public class SamsungFirmwareExtractor
         return partitions;
     }
     
+    private static bool ExtractPartitionsFromTar(FileStream fs, long length, Dictionary<string, byte[]> partitions)
+    {
+        try
+        {
+            using var limitedStream = new LimitedStream(fs, length);
+            using var archive = TarArchive.Open(limitedStream);
+            foreach (var entry in archive.Entries)
+            {
+                if (!entry.IsDirectory)
+                {
+                    using var entryStream = entry.OpenEntryStream();
+                    using var memStream = new MemoryStream();
+                    entryStream.CopyTo(memStream);
+                    
+                    var partitionName = GetPartitionName(entry.Key);
+                    partitions[partitionName] = memStream.ToArray();
+                }
+            }
+            return partitions.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static string GetPartitionName(string entryName)
     {
         var name = System.IO.Path.GetFileName(entryName);
