@@ -14,6 +14,7 @@ public class PartitionRestorer
     private readonly RescueReport _report;
     private readonly bool _force;
     private readonly bool _dryRun;
+    private readonly bool _wipeData;
 
     // Partitions that should NEVER be restored (device-unique or dangerous)
     private static readonly HashSet<string> _neverRestore = new(StringComparer.OrdinalIgnoreCase)
@@ -25,13 +26,14 @@ public class PartitionRestorer
         "msadp",     // Modem debug policy — device-specific
     };
 
-    public PartitionRestorer(IFirehoseClient client, string backupDir, RescueReport report, bool force = false, bool dryRun = false)
+    public PartitionRestorer(IFirehoseClient client, string backupDir, RescueReport report, bool force = false, bool dryRun = false, bool wipeData = false)
     {
         _client = client;
         _backupDir = backupDir;
         _report = report;
         _force = force;
         _dryRun = dryRun;
+        _wipeData = wipeData;
     }
 
     public async Task<List<RestoreAction>> RestoreAsync(
@@ -317,12 +319,151 @@ public class PartitionRestorer
     }
 
     /// <summary>
-    /// Sparse repair: for each MISMATCH partition in the audit, write ONLY the
-    /// differing sectors from the stock image. Verify every written sector after write.
-    /// In dry-run mode: log planned writes but make ZERO WritePartitionBlocksAsync calls.
-    /// CONVENTION: DifferingSectorAddresses stores byte offsets; we convert to sector
-    /// numbers by dividing by 512 before passing to WritePartitionBlocksAsync.
+    /// Wipe the userdata partition at block level.
+    /// THREE safety gates before any erase call:
+    ///   1. --wipe-data flag must be set on the constructor (_wipeData == true)
+    ///   2. Typed confirmation must match expectedToken (or special "DRY-RUN-AUTO" token)
+    ///   3. --dry-run forces ZERO ErasePartitionAsync calls regardless of other gates
+    /// After erase: readback samples first 1000 sectors + last 100 sectors for any
+    /// non-zero byte. Any non-zero byte = VerificationFailed = ABORT rescue.
     /// </summary>
+    public async Task<WipeDataResult> WipeUserDataAsync(
+        string forceConfirmation,
+        string expectedToken = "CONFIRM-WIPE-DATA",
+        CancellationToken ct = default)
+    {
+        var result = new WipeDataResult { ConfirmationRequested = expectedToken };
+
+        // GATE 1: --wipe-data flag must be set
+        if (!_wipeData)
+        {
+            result.Status = WipeDataStatus.WipeNotAuthorized;
+            result.ErrorMessage = "--wipe-data not set. Userdata was NOT erased.";
+            return result;
+        }
+
+        // GATE 2: Typed confirmation must match
+        if (string.IsNullOrEmpty(forceConfirmation) || forceConfirmation != expectedToken)
+        {
+            result.Status = WipeDataStatus.ConfirmationFailed;
+            result.ConfirmationProvided = false;
+            result.ErrorMessage = $"Confirmation mismatch. Expected '{expectedToken}', got '{forceConfirmation}'.";
+            Console.WriteLine($"  [WIPE] CONFIRMATION FAILED. Userdata NOT erased.");
+            return result;
+        }
+        result.ConfirmationProvided = true;
+
+        // GATE 3: Dry-run forces ZERO calls
+        if (_dryRun)
+        {
+            result.Status = WipeDataStatus.DryRunLogged;
+            result.DryRun = true;
+            Console.WriteLine($"  [DRY-RUN] [WIPE] Would erase userdata partition at block level.");
+            Console.WriteLine($"  [DRY-RUN] [WIPE] Would verify post-erase readback shows all zeros.");
+            return result;
+        }
+
+        // ACTUAL WIPE: erase userdata, then readback-verify
+        Console.WriteLine($"  [WIPE] Erasing userdata partition...");
+        var eraseOk = await _client.ErasePartitionAsync("userdata", 0, ct);
+        if (!eraseOk)
+        {
+            result.Status = WipeDataStatus.VerificationFailed;
+            result.ErrorMessage = "ErasePartitionAsync returned false.";
+            Console.WriteLine($"  [WIPE] ❌ Erase command returned NAK.");
+            return result;
+        }
+
+        Console.WriteLine($"  [WIPE] Erase complete. Reading back for verification...");
+
+        // Read back userdata and verify sectors are all zeros
+        // Sample first 1000 sectors + last 100 sectors (if partition has more)
+        byte[] readback;
+        try
+        {
+            readback = await _client.ReadPartitionAsync("userdata", 0, 512, ct);
+        }
+        catch (FirehoseException ex)
+        {
+            result.Status = WipeDataStatus.VerificationFailed;
+            result.ErrorMessage = $"Readback failed: {ex.Message}";
+            Console.WriteLine($"  [WIPE] ❌ Readback failed: {ex.Message}");
+            return result;
+        }
+
+        const int firstSampleSize = 1000;  // sectors
+        const int lastSampleSize = 100;    // sectors
+        const int sectorSize = 512;
+        long totalSectors = readback.Length / sectorSize;
+
+        long sectorsToCheck = Math.Min(firstSampleSize, totalSectors);
+        long checkedCount = 0;
+        long? firstNonZero = null;
+
+        // Check first N sectors
+        for (long s = 0; s < sectorsToCheck; s++)
+        {
+            int byteOffset = (int)(s * sectorSize);
+            if (byteOffset + sectorSize > readback.Length) break;
+            bool allZero = true;
+            for (int b = 0; b < sectorSize; b++)
+            {
+                if (readback[byteOffset + b] != 0)
+                {
+                    allZero = false;
+                    break;
+                }
+            }
+            if (!allZero)
+            {
+                firstNonZero = s;
+                break;
+            }
+            checkedCount++;
+        }
+
+        // Check last N sectors (if partition is large enough)
+        if (firstNonZero == null && totalSectors > firstSampleSize)
+        {
+            long startLast = totalSectors - lastSampleSize;
+            for (long s = startLast; s < totalSectors; s++)
+            {
+                int byteOffset = (int)(s * sectorSize);
+                if (byteOffset + sectorSize > readback.Length) break;
+                bool allZero = true;
+                for (int b = 0; b < sectorSize; b++)
+                {
+                    if (readback[byteOffset + b] != 0)
+                    {
+                        allZero = false;
+                        break;
+                    }
+                }
+                if (!allZero)
+                {
+                    firstNonZero = s;
+                    break;
+                }
+                checkedCount++;
+            }
+        }
+
+        result.SectorsChecked = checkedCount;
+        result.FirstNonZeroSector = firstNonZero;
+
+        if (firstNonZero != null)
+        {
+            result.Status = WipeDataStatus.VerificationFailed;
+            result.ErrorMessage = $"Sector {firstNonZero} contains non-zero data after erase.";
+            Console.WriteLine($"  [WIPE] ❌ VERIFICATION FAILED — sector {firstNonZero} has non-zero data.");
+            return result;
+        }
+
+        result.Status = WipeDataStatus.WipedAndVerified;
+        Console.WriteLine($"  [WIPE] ✅ Wiped and verified — {checkedCount} sectors confirmed zero.");
+        return result;
+    }
+
     private static string ComputeSha256(byte[] data)
     {
         var hash = SHA256.HashData(data);

@@ -26,6 +26,7 @@ public class RescueReport
     public List<MagiskRemovalResult> MagiskRemovals { get; set; } = new();
     public FullGptAuditResult? FullGptAudit { get; set; }
     public SparseRepairResult? SparseRepair { get; set; }
+    public WipeDataResult? WipeData { get; set; }
     public OverallVerdict Verdict { get; set; }
     public List<string> Recommendations { get; set; } = new();
 

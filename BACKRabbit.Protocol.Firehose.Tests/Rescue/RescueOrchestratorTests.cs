@@ -17,6 +17,21 @@ public class MockFirehoseClient : IFirehoseClient
     public List<string> EraseCalls { get; } = new();
     public List<string> ResetCalls { get; } = new();
     public List<string> ReadCalls { get; } = new();
+    public Dictionary<string, byte[]> ReadPartitionOverrides { get; } = new(StringComparer.OrdinalIgnoreCase);
+    private bool _eraseSimulatesWipe = false;
+    private int _userdataSectorCount = 2048;
+
+    /// <summary>
+    /// When true, ErasePartitionAsync("userdata") populates the userdata readback with zeros.
+    /// </summary>
+    public void SetEraseSimulatesWipe(bool enabled, int userdataSectorCount = 2048) =>
+        (_eraseSimulatesWipe, _userdataSectorCount) = (enabled, userdataSectorCount);
+
+    /// <summary>
+    /// Manually set readback data for a partition (e.g. userdata) to simulate non-zero data after erase.
+    /// </summary>
+    public void SetReadPartitionOverride(string partitionName, byte[] data) =>
+        ReadPartitionOverrides[partitionName] = data;
 
     // ─── Configurable responses ──────────────────────────────
     public Dictionary<string, byte[]> PartitionData { get; set; } = new(StringComparer.OrdinalIgnoreCase);
@@ -35,6 +50,10 @@ public class MockFirehoseClient : IFirehoseClient
         CancellationToken ct = default)
     {
         ReadCalls.Add(partitionName);
+        // 1. ReadPartitionOverrides wins (used for simulating non-zero data after wipe)
+        if (ReadPartitionOverrides.TryGetValue(partitionName, out var overrideData))
+            return Task.FromResult(overrideData);
+        // 2. Default to PartitionData
         if (PartitionData.TryGetValue(partitionName, out var data))
             return Task.FromResult(data);
         throw new FirehoseException($"Partition '{partitionName}' not found");
@@ -71,6 +90,16 @@ public class MockFirehoseClient : IFirehoseClient
         string partitionName, int lun = 0, CancellationToken ct = default)
     {
         EraseCalls.Add(partitionName);
+
+        // If --wipe-data simulation is enabled and we just erased userdata,
+        // populate the PartitionData with all-zero bytes (simulating successful wipe).
+        // PartitionData is checked AFTER ReadPartitionOverrides, so a test can pre-set
+        // ReadPartitionOverrides["userdata"] to bad data to simulate a failed wipe.
+        if (_eraseSimulatesWipe && partitionName.Equals("userdata", StringComparison.OrdinalIgnoreCase))
+        {
+            PartitionData["userdata"] = new byte[_userdataSectorCount * 512];
+        }
+
         return Task.FromResult(true);
     }
 

@@ -15,14 +15,16 @@ public class RescueOrchestrator
     private readonly bool _dryRun;
     private readonly bool _force;
     private readonly bool _skipDownloadModeCheck;
+    private readonly bool _wipeData;
 
-    public RescueOrchestrator(IFirehoseClient client, string backupDir, bool dryRun = false, bool force = false, bool skipDownloadModeCheck = false)
+    public RescueOrchestrator(IFirehoseClient client, string backupDir, bool dryRun = false, bool force = false, bool skipDownloadModeCheck = false, bool wipeData = false)
     {
         _client = client;
         _backupDir = backupDir;
         _dryRun = dryRun;
         _force = force;
         _skipDownloadModeCheck = skipDownloadModeCheck;
+        _wipeData = wipeData;
     }
 
     public async Task<RescueReport> RunFullRescueAsync(CancellationToken ct = default)
@@ -165,6 +167,46 @@ public class RescueOrchestrator
             Console.WriteLine("  No full-restore fallback needed.");
         }
 
+        // [4c/7] Optional userdata wipe (--wipe-data)
+        Console.WriteLine("\n[4c/7] Checking --wipe-data flag...");
+        var wipeRestorer = new PartitionRestorer(_client, _backupDir, report, _force, _dryRun, _wipeData);
+        if (!_wipeData)
+        {
+            Console.WriteLine("  userdata NOT erased (--wipe-data not set).");
+            Console.WriteLine("  Partitions with NO_STOCK_COMPARISON remain on device.");
+            report.WipeData = new WipeDataResult { Status = WipeDataStatus.WipeNotAuthorized };
+        }
+        else
+        {
+            // Dry-run path: log the planned wipe, make ZERO calls
+            if (_dryRun)
+            {
+                Console.WriteLine("  [DRY-RUN] --wipe-data set. Would erase userdata partition at block level.");
+                Console.WriteLine("  [DRY-RUN] Would verify post-erase readback shows all zeros.");
+                report.WipeData = await wipeRestorer.WipeUserDataAsync(forceConfirmation: "DRY-RUN-AUTO", ct: ct);
+            }
+            else
+            {
+                // Second typed confirmation gate inside orchestrator (CLI already gated this once)
+                var confirmationString = _client.ChipInfo?.SerialNumber ?? "CONFIRM-WIPE-DATA";
+                Console.WriteLine($"  ☢️  --wipe-data confirmed. About to erase userdata partition at block level.");
+                Console.WriteLine($"     Type the confirmation token to proceed: {confirmationString}");
+                Console.Write($"     > ");
+                var typedConfirmation = Console.ReadLine()?.Trim() ?? "";
+                report.WipeData = await wipeRestorer.WipeUserDataAsync(forceConfirmation: typedConfirmation, expectedToken: confirmationString, ct: ct);
+            }
+
+            // Verification failure ABORTS rescue (skips Phase 5/6/7)
+            if (report.WipeData.Status == WipeDataStatus.VerificationFailed)
+            {
+                Console.WriteLine("  ❌ --wipe-data VERIFICATION FAILED. ABORTING rescue.");
+                Console.WriteLine($"     First non-zero sector: {report.WipeData.FirstNonZeroSector}");
+                report.Verdict = OverallVerdict.PermanentDamage;
+                // Skip remaining phases, generate report and exit
+                goto GenerateReport;
+            }
+        }
+
         // [5/7] Remove Magisk
         Console.WriteLine("\n[5/7] Removing Magisk...");
         var magiskTampered = report.Partitions
@@ -234,6 +276,7 @@ public class RescueOrchestrator
         }
 
         // [7/7] Generate report
+        GenerateReport:
         Console.WriteLine("\n[7/7] Generating rescue report...");
         var reportJson = report.ToJson();
         var reportHash = ComputeSha256(System.Text.Encoding.UTF8.GetBytes(reportJson));

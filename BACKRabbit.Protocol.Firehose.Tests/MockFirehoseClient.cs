@@ -62,7 +62,25 @@ public class MockFirehoseClient : IFirehoseClient
     private bool _writeResult = true;
     private bool _writeBlocksResult = true;
     private bool _eraseResult = true;
+    private bool _eraseSimulatesWipe = false;
+    private int _userdataSectorCount = 2048;  // default 1MB if --wipe-data simulated
     private SaharaChipInfo? _chipInfo;
+
+    /// <summary>
+    /// When true, calling ErasePartitionAsync("userdata") will:
+    /// 1. Record the erase call
+    /// 2. Replace subsequent ReadPartitionAsync("userdata") returns with all-zero data
+    /// (simulating a successful block-level wipe).
+    /// </summary>
+    public void SetEraseSimulatesWipe(bool enabled, int userdataSectorCount = 2048) =>
+        (_eraseSimulatesWipe, _userdataSectorCount) = (enabled, userdataSectorCount);
+
+    /// <summary>
+    /// Configure the readback data for userdata partition (overrides the wipe simulation).
+    /// Useful for simulating a failed wipe (non-zero data after erase).
+    /// </summary>
+    public void SetUserdataReadback(byte[] data) =>
+        _readPartitionResponses["userdata"] = data;
 
     public void SetReadPartitionResponse(string partitionName, byte[] data) =>
         _readPartitionResponses[partitionName] = data;
@@ -101,6 +119,20 @@ public class MockFirehoseClient : IFirehoseClient
 
         // Return empty data for unknown partitions
         return Task.FromResult(Array.Empty<byte>());
+    }
+
+    /// <summary>
+    /// Helper to get the current userdata readback (used after --wipe-data simulation).
+    /// Returns all-zero bytes of userdataSectorCount * 512 size if _eraseSimulatesWipe is enabled,
+    /// or whatever was set via SetUserdataReadback.
+    /// </summary>
+    public byte[] GetUserdataReadback()
+    {
+        if (_readPartitionResponses.TryGetValue("userdata", out var configured))
+            return configured;
+        if (_eraseSimulatesWipe)
+            return new byte[_userdataSectorCount * 512];
+        return Array.Empty<byte>();
     }
 
     public Task<List<GptPartitionEntry>> PrintGptAsync(int lun = 0, CancellationToken ct = default)
@@ -160,6 +192,14 @@ public class MockFirehoseClient : IFirehoseClient
     public Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default)
     {
         CallLog.Add(new CallRecord { MethodName = nameof(ErasePartitionAsync), Arguments = new object?[] { partitionName, lun } });
+
+        // If --wipe-data simulation is enabled and we just erased userdata,
+        // populate the readback response with all-zero bytes (simulating successful wipe).
+        if (_eraseSimulatesWipe && partitionName.Equals("userdata", StringComparison.OrdinalIgnoreCase))
+        {
+            _readPartitionResponses["userdata"] = new byte[_userdataSectorCount * 512];
+        }
+
         return Task.FromResult(_eraseResult);
     }
 

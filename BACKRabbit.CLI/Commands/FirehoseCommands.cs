@@ -31,6 +31,7 @@ public static class FirehoseCommands
     private static readonly Option<bool> DryRunOpt = new("--dry-run", () => false, "Run full diagnosis and detection without flashing any partitions");
     private static readonly Option<bool> ForceOpt = new("--force", () => false, "Override blocklist protection for device-unique partitions (requires typed confirmation)");
     private static readonly Option<bool> SkipDlModeCheckOpt = new("--skip-dl-mode-check", () => false, "Skip automatic Download Mode reboot (use if device is already in Download Mode)");
+    private static readonly Option<bool> WipeDataOpt = new("--wipe-data", () => false, "DANGER: Erase ALL userdata partition at block level. Requires typed confirmation. Cannot be undone.");
 
     static FirehoseCommands()
     {
@@ -354,7 +355,7 @@ public static class FirehoseCommands
     private static Command CreateRescueFull()
     {
         var cmd = new Command("full", "Run complete rescue sequence (diagnose + fuses + restore + unmagisk)")
-            { DeviceOpt, LoaderOpt, BackupOpt, ModelOpt, RegionOpt, SkipTuiOpt, DryRunOpt, ForceOpt, SkipDlModeCheckOpt };
+            { DeviceOpt, LoaderOpt, BackupOpt, ModelOpt, RegionOpt, SkipTuiOpt, DryRunOpt, ForceOpt, SkipDlModeCheckOpt, WipeDataOpt };
         cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
         {
             var (client, _) = await InitClientAsync(ctx);
@@ -405,6 +406,7 @@ public static class FirehoseCommands
             var dryRun = ctx.ParseResult.GetValueForOption(DryRunOpt);
             var force = ctx.ParseResult.GetValueForOption(ForceOpt);
             var skipDlModeCheck = ctx.ParseResult.GetValueForOption(SkipDlModeCheckOpt);
+            var wipeData = ctx.ParseResult.GetValueForOption(WipeDataOpt);
 
             // --force requires explicit typed confirmation
             if (force && !dryRun)
@@ -422,7 +424,25 @@ public static class FirehoseCommands
                 Console.WriteLine("   Confirmation accepted. Proceeding with force override.\n");
             }
 
-            var orchestrator = new RescueOrchestrator(client, resolvedBackupDir ?? "", dryRun, force, skipDlModeCheck);
+            // --wipe-data requires explicit typed confirmation (CLI-level gate)
+            // Note: the orchestrator enforces a SECOND gate internally via WipeUserDataAsync.
+            if (wipeData && !dryRun)
+            {
+                Console.WriteLine("\n☢️  --wipe-data WILL ERASE THE ENTIRE userdata PARTITION.");
+                Console.WriteLine("   This includes /data, /data/adb, all apps, settings, and accounts.");
+                Console.WriteLine("   /sdcard may also be cleared depending on device layout.");
+                Console.WriteLine("   This CANNOT BE UNDONE.");
+                Console.Write("\n   Type \"WIPE-USERDATA\" to proceed: ");
+                var wipeConfirmation = Console.ReadLine();
+                if (wipeConfirmation != "WIPE-USERDATA")
+                {
+                    Console.WriteLine("   Confirmation failed. Aborting rescue.");
+                    return;
+                }
+                Console.WriteLine("   Confirmation accepted. Proceeding with userdata wipe.\n");
+            }
+
+            var orchestrator = new RescueOrchestrator(client, resolvedBackupDir ?? "", dryRun, force, skipDlModeCheck, wipeData);
             await orchestrator.RunFullRescueAsync();
             // Device resets at end of full rescue — no disconnect needed
         });
