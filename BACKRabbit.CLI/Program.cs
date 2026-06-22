@@ -7,7 +7,10 @@ using BACKRabbit.Protocol.DownloadMode;
 using BACKRabbit.MagiskCore.Services;
 using BACKRabbit.Firmware;
 using BACKRabbit.CLI.Commands;
+using BACKRabbit.CLI.Magisk;
 using BACKRabbit.CLI.TUI;
+using BACKRabbit.MagiskCore.Parser;
+using BACKRabbit.MagiskCore.RamdiskEditor;
 
 namespace BACKRabbit.CLI;
 
@@ -60,6 +63,15 @@ public class Program
         magiskUninstall.AddOption(verboseOption);
         magiskUninstall.Handler = CommandHandler.Create<string, bool, bool, bool>(MagiskUninstallHandler);
         magiskCommand.AddCommand(magiskUninstall);
+
+        var magiskRestoreStock = new Command("restore-stock", "Flash stock boot/vbmeta via fastboot and clean /data/adb");
+        var stockDirOption = new Option<DirectoryInfo>(new[] { "--stock-dir", "-d" }, "Directory containing stock firmware .img files") { IsRequired = true };
+        var restoreDryRunOption = new Option<bool>(new[] { "--dry-run", "-n" }, () => false, "Analyze only; do not flash or clean");
+        magiskRestoreStock.AddOption(stockDirOption);
+        magiskRestoreStock.AddOption(restoreDryRunOption);
+        magiskRestoreStock.AddOption(verboseOption);
+        magiskRestoreStock.Handler = CommandHandler.Create<DirectoryInfo, bool, bool>(RestoreStockHandler);
+        magiskCommand.AddCommand(magiskRestoreStock);
 
         rootCommand.AddCommand(magiskCommand);
 
@@ -332,6 +344,50 @@ public class Program
             }
         }
         catch { /* properties unavailable */ }
+    }
+
+    private static async Task RestoreStockHandler(DirectoryInfo stockDir, bool dryRun, bool verbose)
+    {
+        if (!stockDir.Exists)
+        {
+            Console.WriteLine($"❌ Stock directory not found: {stockDir.FullName}");
+            return;
+        }
+
+        Console.WriteLine($"🐰 BACKRabbit restore-stock");
+        Console.WriteLine($"   Stock directory: {stockDir.FullName}");
+        Console.WriteLine($"   Mode: {(dryRun ? "DRY-RUN (analysis only)" : "LIVE")}");
+        Console.WriteLine();
+
+        using var usb = new UsbDeviceManager();
+        using var adb = new AdbClient();
+        using var fastboot = new FastbootClient();
+
+        if (verbose)
+        {
+            adb.LogMessage += (_, msg) => Console.WriteLine($"  [ADB] {msg}");
+            fastboot.LogMessage += (_, msg) => Console.WriteLine($"  [FB] {msg}");
+        }
+
+        var parser = new BootImageParser();
+        var detector = new MagiskArtifactDetector();
+        var options = new RestoreStockOptions
+        {
+            StockDirectory = stockDir.FullName,
+            DryRun = dryRun
+        };
+
+        var orchestrator = new RestoreStockOrchestrator(adb, fastboot, usb, parser, detector, options);
+        var result = await orchestrator.RunAsync();
+
+        Console.WriteLine();
+        Console.WriteLine($"=== Result: {result.Status} ===");
+        if (!string.IsNullOrEmpty(result.Error))
+            Console.WriteLine($"Error: {result.Error}");
+        if (!string.IsNullOrEmpty(result.FlashError))
+            Console.WriteLine($"Flash error: {result.FlashError}");
+        if (!string.IsNullOrEmpty(result.CleanError))
+            Console.WriteLine($"Clean error: {result.CleanError}");
     }
 
     private static async Task MagiskUninstallHandler(string serial, bool backup, bool reboot, bool verbose)

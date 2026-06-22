@@ -17,9 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BACKRabbit.CLI\BACKRabbit.CLI.csproj" />
     <ProjectReference Include="..\BACKRabbit.MagiskCore\BACKRabbit.MagiskCore.csproj" />
     <ProjectReference Include="..\BACKRabbit.Firmware\BACKRabbit.Firmware.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Adb\BACKRabbit.Protocol.Adb.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Fastboot\BACKRabbit.Protocol.Fastboot.csproj" />
     <ProjectReference Include="..\BACKRabbit.Protocol.Firehose\BACKRabbit.Protocol.Firehose.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Usb\BACKRabbit.Usb.csproj" />
   </ItemGroup>
 
   <ItemGroup>

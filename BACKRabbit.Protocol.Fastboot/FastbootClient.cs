@@ -8,7 +8,8 @@ namespace BACKRabbit.Protocol.Fastboot;
 /// Fastboot Client - Android bootloader flashing protocol
 /// Supports sparse images, A/B slots, and all standard commands
 /// </summary>
-public class FastbootClient : IDisposable
+
+public class FastbootClient : IFastbootClient, IDisposable
 {
     private UsbDeviceManager? _usb;
     private bool _connected;
