@@ -270,16 +270,46 @@ public class RestoreStockOrchestrator
             }
         }
 
-        // /data/adb status
-        analysis.DataAdbListing = await _adb.ExecuteShellAsync("ls -la /data/adb/ 2>&1 || echo 'NO_DATA_ADB'", ct);
+        // /data/adb forensic analysis — use CheckMagiskStatusAsync for proper SELinux-aware detection
+        // "Permission denied" = directory EXISTS but SELinux blocks access → Magisk was installed
+        // "No such file" = directory genuinely doesn't exist → stock device
+        analysis.MagiskStatus = await _adb.CheckMagiskStatusAsync(ct);
+        analysis.DataAdbListing = analysis.MagiskStatus.HasAdbDirectory
+            ? (analysis.MagiskStatus.IsAdbReadable ? "READABLE" : "LOCKED (SELinux — Permission denied)")
+            : "NOT PRESENT";
         analysis.Overlays = await _adb.ExecuteShellAsync("mount 2>&1 | grep overlay || echo 'NO_OVERLAYS'", ct);
+
+        // Determine verdict
+        analysis.BootPullFailed = !analysis.BootPulled;
+        analysis.HasAdbDirectory = analysis.MagiskStatus.HasAdbDirectory;
+        analysis.HasOverlays = !analysis.Overlays.Contains("NO_OVERLAYS");
+        analysis.HasMagiskArtifacts = analysis.CurrentArtifactResult?.IsMagiskInstalled ?? false;
+
+        // Verdict logic:
+        // - Boot pull failed → UNKNOWN (cannot determine, do NOT assume clean)
+        // - /data/adb exists (even if locked) → COMPROMISED (Magisk was installed)
+        // - Boot differs from stock → MODIFIED
+        // - Both → COMPROMISED
+        // - None of the above → CLEAN
+        if (analysis.BootPullFailed)
+            analysis.Verdict = "UNKNOWN — boot image pull failed, cannot compare against stock";
+        else if (analysis.HasAdbDirectory && analysis.BootModified)
+            analysis.Verdict = "COMPROMISED — boot image modified AND /data/adb persistence detected";
+        else if (analysis.HasAdbDirectory)
+            analysis.Verdict = "COMPROMISED — /data/adb directory exists (Magisk persistence). Boot image matches stock but residual traces remain.";
+        else if (analysis.BootModified)
+            analysis.Verdict = "MODIFIED — boot image differs from stock";
+        else if (analysis.HasMagiskArtifacts)
+            analysis.Verdict = "MODIFIED — Magisk artifacts detected in ramdisk";
+        else
+            analysis.Verdict = "CLEAN — boot matches stock, no /data/adb, no overlays, no Magisk artifacts";
 
         // Print summary
         WriteLine();
         WriteLine("--- Analysis Summary ---");
         WriteLine($"Device slot suffix: {analysis.SlotSuffix} (A/B: {analysis.IsAbSlotting})");
         WriteLine($"Stock boot: {(analysis.StockBoot != null ? "parsed" : "not found")}");
-        WriteLine($"Current boot: {(analysis.CurrentBoot != null ? "parsed" : "pull failed")}");
+        WriteLine($"Current boot: {(analysis.CurrentBoot != null ? "parsed" : (analysis.BootPullFailed ? "pull failed" : "not pulled"))}");
         WriteLine($"Boot modified: {analysis.BootModified}");
         if (!string.IsNullOrEmpty(analysis.CmdlineDiff)) WriteLine($"Cmdline diff:\n{analysis.CmdlineDiff}");
         if (analysis.RamdiskEntryDiff.Any())
@@ -306,14 +336,12 @@ public class RestoreStockOrchestrator
             foreach (var a in analysis.CurrentArtifactResult.FoundArtifacts.Take(10))
                 WriteLine($"  - {a}");
         }
-        WriteLine($"/data/adb listing:\n{analysis.DataAdbListing}");
+        WriteLine($"/data/adb status: {analysis.DataAdbListing}");
+        if (analysis.MagiskStatus.IsResidual)
+            WriteLine($"  Residual evidence: {analysis.MagiskStatus.ResidualEvidence}");
         WriteLine($"Overlay status:\n{analysis.Overlays}");
-        if (!analysis.BootModified && (analysis.CurrentArtifactResult == null || !analysis.CurrentArtifactResult.IsMagiskInstalled) &&
-            (analysis.DataAdbListing.Contains("No such file") || string.IsNullOrWhiteSpace(analysis.DataAdbListing)))
-        {
-            WriteLine("Device boot image matches stock — no modifications detected");
-        }
-        WriteLine($"Verdict: {(analysis.BootModified || (analysis.CurrentArtifactResult?.IsMagiskInstalled ?? false) ? "MODIFIED / COMPROMISED" : "CLEAN")}");
+        WriteLine();
+        WriteLine($"VERDICT: {analysis.Verdict}");
 
         return analysis;
     }
@@ -613,4 +641,10 @@ public class RestoreStockAnalysis
     public MagiskDetectionResult? CurrentArtifactResult { get; set; }
     public string DataAdbListing { get; set; } = "";
     public string Overlays { get; set; } = "";
+    public MagiskStatus? MagiskStatus { get; set; }
+    public bool BootPullFailed { get; set; }
+    public bool HasAdbDirectory { get; set; }
+    public bool HasOverlays { get; set; }
+    public bool HasMagiskArtifacts { get; set; }
+    public string Verdict { get; set; } = "";
 }

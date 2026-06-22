@@ -67,6 +67,20 @@ public class AdbClient : IAdbClient
     {
         _usbManager = usb;
         
+        // Try ADB server proxy FIRST (fast TCP check, non-blocking).
+        // LibUsbDotNet enumeration can hang on Windows when the Samsung driver
+        // (ssudmdm.sys) is broken or when the Android ADB driver has claimed the device.
+        // The ADB server handles the USB driver layer — we just talk TCP.
+        Log("Trying ADB server proxy (127.0.0.1:5037)...");
+        var serial = await QueryAdbServerFirstDeviceAsync(ct);
+        if (serial != null)
+        {
+            Serial = serial;
+            return await ConnectViaAdbServerAsync(ct);
+        }
+        
+        Log("ADB server not available, trying direct USB enumeration...");
+        
         // Try Samsung-specific enumeration first for backward compatibility,
         // then fall back to cross-vendor Android ADB enumeration.
         var devices = usb.EnumerateSamsungDevices();
@@ -80,7 +94,7 @@ public class AdbClient : IAdbClient
         
         if (adbDevice == null)
         {
-            Log("No ADB device found");
+            Log("No ADB device found (USB enumeration and ADB server both failed)");
             return false;
         }
         
@@ -222,6 +236,97 @@ public class AdbClient : IAdbClient
         {
             Log($"ADB server proxy failed: {ex.Message}");
             return false;
+        }
+    }
+    
+    /// <summary>
+    /// Query the ADB server for the first connected device serial.
+    /// Sends "host:devices" to 127.0.0.1:5037 and parses the response.
+    /// Returns null if no devices are connected or the server is unreachable.
+    /// </summary>
+    private async Task<string?> QueryAdbServerFirstDeviceAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var serverClient = new TcpClient();
+            await serverClient.ConnectAsync("127.0.0.1", 5037, ct);
+            var serverStream = serverClient.GetStream();
+            
+            // Send "host:devices" request
+            var request = "host:devices";
+            var requestBytes = Encoding.ASCII.GetBytes(request);
+            var lengthHex = $"{requestBytes.Length:X4}";
+            var lengthBytes = Encoding.ASCII.GetBytes(lengthHex);
+            
+            await serverStream.WriteAsync(lengthBytes, ct);
+            await serverStream.WriteAsync(requestBytes, ct);
+            await serverStream.FlushAsync(ct);
+            
+            // Read response: 4 bytes "OKAY" or "FAIL"
+            var statusBuffer = new byte[4];
+            var read = await serverStream.ReadAsync(statusBuffer, 0, 4, ct);
+            if (read < 4)
+            {
+                Log("ADB server: no response to host:devices");
+                return null;
+            }
+            
+            var status = Encoding.ASCII.GetString(statusBuffer, 0, 4);
+            if (status != "OKAY")
+            {
+                Log($"ADB server: host:devices returned {status}");
+                return null;
+            }
+            
+            // Read response length (4-byte hex)
+            var lenBuffer = new byte[4];
+            read = await serverStream.ReadAsync(lenBuffer, 0, 4, ct);
+            if (read < 4)
+            {
+                Log("ADB server: no length after host:devices OKAY");
+                return null;
+            }
+            
+            var responseLen = int.Parse(Encoding.ASCII.GetString(lenBuffer, 0, 4),
+                System.Globalization.NumberStyles.HexNumber);
+            
+            if (responseLen == 0)
+            {
+                Log("ADB server: no devices connected");
+                return null;
+            }
+            
+            // Read device list
+            var responseBuffer = new byte[responseLen];
+            read = await serverStream.ReadAsync(responseBuffer, 0, responseLen, ct);
+            if (read < responseLen)
+            {
+                Log("ADB server: truncated device list");
+                return null;
+            }
+            
+            var deviceList = Encoding.ASCII.GetString(responseBuffer, 0, responseLen);
+            Log($"ADB server devices: {deviceList}");
+            
+            // Parse first device: format is "serial\tdevice\nserial\tdevice\n..."
+            var lines = deviceList.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                var parts = line.Split('\t');
+                if (parts.Length >= 2 && parts[1] == "device")
+                {
+                    Log($"ADB server: using device {parts[0]}");
+                    return parts[0];
+                }
+            }
+            
+            Log("ADB server: no online devices found");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Log($"ADB server host:devices failed: {ex.Message}");
+            return null;
         }
     }
     
@@ -846,6 +951,11 @@ public class AdbClient : IAdbClient
     /// </summary>
     public async Task<bool> PullFileAsync(string remotePath, string localPath, CancellationToken ct = default)
     {
+        if (_usingServerProxy)
+        {
+            return await PullFileViaServerAsync(remotePath, localPath, ct);
+        }
+        
         Log($"Pulling {remotePath} -> {localPath}");
         
         var stream = await OpenStreamAsync("sync:", ct);
@@ -884,6 +994,76 @@ public class AdbClient : IAdbClient
         finally
         {
             await stream.CloseAsync(ct);
+        }
+    }
+    
+    /// <summary>
+    /// Pull file via ADB server proxy using dd through shell.
+    /// The sync: service over server proxy is unreliable; dd via shell works consistently.
+    /// </summary>
+    private async Task<bool> PullFileViaServerAsync(string remotePath, string localPath, CancellationToken ct)
+    {
+        Log($"Pulling (via server) {remotePath} -> {localPath}");
+        
+        try
+        {
+            // Use dd to read the block device/file and capture raw bytes
+            // dd if=<path> bs=4096 status=none
+            var ddCommand = $"dd if={remotePath} bs=4096 status=none 2>/dev/null";
+            
+            using var serverClient = new TcpClient();
+            await serverClient.ConnectAsync("127.0.0.1", 5037, ct);
+            var serverStream = serverClient.GetStream();
+            
+            // Step 1: Request device transport
+            var transportRequest = $"host:transport:{Serial}";
+            await SendAdbServerRequestAsync(serverStream, transportRequest, ct);
+            
+            var transportStatus = await ReadAdbServerStatusAsync(serverStream, ct);
+            if (transportStatus != "OKAY")
+            {
+                Log($"ADB server transport: {transportStatus}");
+                return false;
+            }
+            
+            // Step 2: Request shell command
+            var shellRequest = $"shell:{ddCommand}";
+            await SendAdbServerRequestAsync(serverStream, shellRequest, ct);
+            
+            var shellStatus = await ReadAdbServerStatusAsync(serverStream, ct);
+            if (shellStatus != "OKAY")
+            {
+                Log($"ADB server shell: {shellStatus}");
+                return false;
+            }
+            
+            // Step 3: Read raw binary output from dd
+            using var fileStream = File.Create(localPath);
+            var buffer = new byte[65536];
+            int totalRead = 0;
+            
+            try
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    var bytesRead = await serverStream.ReadAsync(buffer, 0, buffer.Length, ct);
+                    if (bytesRead == 0) break;
+                    fileStream.Write(buffer, 0, bytesRead);
+                    totalRead += bytesRead;
+                }
+            }
+            catch (IOException)
+            {
+                // Stream closed by server — normal end of dd output
+            }
+            
+            Log($"Pull complete (via server dd): {localPath} ({totalRead} bytes)");
+            return totalRead > 0;
+        }
+        catch (Exception ex)
+        {
+            Log($"Pull via server failed: {ex.Message}");
+            return false;
         }
     }
     
