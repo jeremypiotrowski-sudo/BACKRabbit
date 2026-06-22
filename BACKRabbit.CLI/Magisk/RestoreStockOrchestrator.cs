@@ -286,17 +286,17 @@ public class RestoreStockOrchestrator
         analysis.HasMagiskArtifacts = analysis.CurrentArtifactResult?.IsMagiskInstalled ?? false;
 
         // Verdict logic:
-        // - Boot pull failed → UNKNOWN (cannot determine, do NOT assume clean)
-        // - /data/adb exists (even if locked) → COMPROMISED (Magisk was installed)
-        // - Boot differs from stock → MODIFIED
-        // - Both → COMPROMISED
+        // - /data/adb exists (even if locked) → COMPROMISED (Magisk was installed) — this is independent evidence
+        // - Boot pull failed + no /data/adb → UNKNOWN (cannot determine, do NOT assume clean)
+        // - Boot differs from stock + /data/adb → COMPROMISED
+        // - Boot differs from stock only → MODIFIED
         // - None of the above → CLEAN
-        if (analysis.BootPullFailed)
-            analysis.Verdict = "UNKNOWN — boot image pull failed, cannot compare against stock";
-        else if (analysis.HasAdbDirectory && analysis.BootModified)
+        if (analysis.HasAdbDirectory && analysis.BootModified)
             analysis.Verdict = "COMPROMISED — boot image modified AND /data/adb persistence detected";
         else if (analysis.HasAdbDirectory)
-            analysis.Verdict = "COMPROMISED — /data/adb directory exists (Magisk persistence). Boot image matches stock but residual traces remain.";
+            analysis.Verdict = $"COMPROMISED — /data/adb directory exists (Magisk persistence). {(analysis.BootPullFailed ? "Boot image could not be pulled for comparison." : "Boot image matches stock but residual traces remain.")}";
+        else if (analysis.BootPullFailed)
+            analysis.Verdict = "UNKNOWN — boot image pull failed, cannot compare against stock";
         else if (analysis.BootModified)
             analysis.Verdict = "MODIFIED — boot image differs from stock";
         else if (analysis.HasMagiskArtifacts)
