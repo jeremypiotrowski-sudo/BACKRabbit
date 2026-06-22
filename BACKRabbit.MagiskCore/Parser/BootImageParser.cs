@@ -50,12 +50,14 @@ public class BootImageParser
                     break;
                 case FileFormat.CHROMEOS:
                     img.Flags.HasChromeos = true;
-                    i += 65535;
+                    // Continue scanning for the AOSP header after the ChromeOS prefix;
+                    // the actual AOSP header offset becomes BaseOffset.
                     break;
                 case FileFormat.AOSP:
                 case FileFormat.AOSP_VENDOR:
                     if (ParseHeader(data.AsSpan(i), fmt, img))
                     {
+                        img.BaseOffset = i;
                         ParseSections(data, img);
                         ParseTail(data, img);
                         return img;
@@ -234,12 +236,12 @@ public class BootImageParser
                 hdr3.magic = data.Slice(0, 8).ToArray();
                 hdr3.kernel_size = kernelSize;
                 hdr3.ramdisk_size = ramdiskSize;
-                hdr3.os_version = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(12, 4));
-                hdr3.header_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(16, 4));
-                hdr3.reserved_0 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(20, 4));
-                hdr3.reserved_1 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(24, 4));
-                hdr3.reserved_2 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(28, 4));
-                hdr3.reserved_3 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(32, 4));
+                hdr3.os_version = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(16, 4));
+                hdr3.header_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(20, 4));
+                hdr3.reserved_0 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(24, 4));
+                hdr3.reserved_1 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(28, 4));
+                hdr3.reserved_2 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(32, 4));
+                hdr3.reserved_3 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(36, 4));
                 hdr3.header_version = headerVersion;
                 hdr3.cmdline = data.Slice(40, 1536).ToArray();
                 img.HeaderV3 = hdr3;
@@ -249,15 +251,15 @@ public class BootImageParser
                 hdr4.magic = data.Slice(0, 8).ToArray();
                 hdr4.kernel_size = kernelSize;
                 hdr4.ramdisk_size = ramdiskSize;
-                hdr4.os_version = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(12, 4));
-                hdr4.header_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(16, 4));
-                hdr4.reserved_0 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(20, 4));
-                hdr4.reserved_1 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(24, 4));
-                hdr4.reserved_2 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(28, 4));
-                hdr4.reserved_3 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(32, 4));
+                hdr4.os_version = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(16, 4));
+                hdr4.header_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(20, 4));
+                hdr4.reserved_0 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(24, 4));
+                hdr4.reserved_1 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(28, 4));
+                hdr4.reserved_2 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(32, 4));
+                hdr4.reserved_3 = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(36, 4));
                 hdr4.header_version = headerVersion;
                 hdr4.cmdline = data.Slice(40, 1536).ToArray();
-                hdr4.signature_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(1576, 4));
+                hdr4.signature_size = BinaryPrimitives.ReadUInt32LittleEndian(data.Slice(1580, 4));
                 img.HeaderV4 = hdr4;
                 break;
             default:
@@ -277,7 +279,7 @@ public class BootImageParser
 
     private void ParseSections(byte[] data, BootImage img)
     {
-        var offset = GetHeaderSize(img);
+        var offset = img.BaseOffset + GetPageSize(img);
         var pageSize = GetPageSize(img);
 
         // Kernel
@@ -314,7 +316,7 @@ public class BootImageParser
         // DTB (v2+, vendor)
         if (img.HeaderVersion >= 2 || img.IsVendor)
         {
-            img.DtbOffset = offset;  // File offset, not memory address (dtb_addr)
+            img.DtbOffset = (ulong)offset;  // File offset, not memory address (dtb_addr)
             img.DtbSize = GetDtbSize(img);
             offset += Align(img.DtbSize, pageSize);
         }
@@ -410,36 +412,57 @@ for (int i = 0; i < entryCount; i++)
 
     private uint GetHeaderSize(BootImage img)
     {
+        // Returns the STRUCT SIZE of the header, not the padded file size.
+        // Buffer allocation uses this; file offsets use GetPageSize().
         if (img.IsVendor)
         {
-            return img.HeaderVersion == 4 
-                ? img.HeaderV4Vendor.header_size 
+            return img.HeaderVersion == 4
+                ? img.HeaderV4Vendor.header_size
                 : img.HeaderV3Vendor.header_size;
+        }
+        if (img.Flags.IsPxa)
+        {
+            return (uint)Marshal.SizeOf<BootImgHdrPxa>();
         }
         return img.HeaderVersion switch
         {
-            0 => 512,
-            1 => 512,
-            2 => 512,
-            3 => 4096,
-            4 => 4096,
-            _ => 512
+            0 => 1632,
+            1 => 1660,
+            2 => 1660,
+            3 => img.HeaderV3.header_size > 0 ? img.HeaderV3.header_size : 4096,
+            4 => img.HeaderV4.header_size > 0 ? img.HeaderV4.header_size : 4096,
+            _ => 1632
         };
     }
 
     private uint GetPageSize(BootImage img)
     {
+        // Returns the alignment/page size used to pad headers and sections.
+        // Defaults to 4096 to avoid divide-by-zero on malformed images.
+        uint pageSize;
         if (img.IsVendor)
         {
-            return img.HeaderVersion == 4 
-                ? img.HeaderV4Vendor.page_size 
+            pageSize = img.HeaderVersion == 4
+                ? img.HeaderV4Vendor.page_size
                 : img.HeaderV3Vendor.page_size;
         }
-        if (img.Flags.IsPxa)
+        else if (img.Flags.IsPxa)
         {
-            return img.HeaderPxa.page_size;
+            pageSize = img.HeaderPxa.page_size;
         }
-        return img.HeaderVersion >= 3 ? 4096u : img.HeaderV0.page_size;
+        else
+        {
+            pageSize = img.HeaderVersion switch
+            {
+                0 => img.HeaderV0.page_size,
+                1 => img.HeaderV1.page_size,
+                2 => img.HeaderV2.page_size,
+                3 => 4096,
+                4 => 4096,
+                _ => img.HeaderV0.page_size
+            };
+        }
+        return pageSize > 0 ? pageSize : 4096;
     }
 
     private uint GetKernelSize(BootImage img)
@@ -627,6 +650,10 @@ public class BootImage
     public byte[] RawData { get; set; } = Array.Empty<byte>();
     public bool IsVendor { get; set; }
     public uint HeaderVersion { get; set; }
+
+    // Offset in RawData where the actual boot/vendor header starts
+    // (non-zero for DHTB/MTK/ChromeOS/BLOB prefixed images).
+    public long BaseOffset { get; set; }
 
     // Headers (only one will be populated based on version/type)
     public BootImgHdrV0 HeaderV0 { get; set; }

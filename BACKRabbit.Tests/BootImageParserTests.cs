@@ -103,126 +103,148 @@ public class BootImageParserTests
     // ===== Synthetic boot images for all header versions =====
 
     /// <summary>
-    /// Builds a synthetic boot image by creating a minimal valid image
-    /// with known kernel/ramdisk data, then round-trips it.
+    /// Builds a synthetic boot image with a valid header for the requested version.
+    /// Layouts match the AOSP boot image specification so parse/repack round-trips work.
     /// </summary>
     private byte[] BuildSynthetic(uint headerVersion, byte[] kernel, byte[] ramdisk,
         byte[]? dtb = null, byte[]? sig = null, bool isVendor = false)
     {
-        // Create a minimal boot image by parsing a known-good image and modifying it
-        // Strategy: Use the F966U1 boot.img as a template, then repack with our data
-        var stagingBoot = Path.Combine(StagingDir, "F966U1", "boot.img");
-        if (File.Exists(stagingBoot))
-        {
-            var parser = new BootImageParser();
-            var repacker = new BootImageRepacker();
-            var template = parser.Parse(File.ReadAllBytes(stagingBoot));
-            // Override with our test data
-            return repacker.Repack(template, ramdisk, kernel);
-        }
-
-        // Fallback: build from scratch using a minimal valid header
         using var ms = new MemoryStream();
         var writer = new BinaryWriter(ms);
 
         if (isVendor)
         {
             // Vendor boot image: VNDRBOOT magic + vendor header v3/v4
-            // Pre-compress ramdisk (vendor boot ramdisks are always compressed in real images)
             byte[] vendorRamdisk;
             using (var compression = new CompressionEngine())
             {
                 vendorRamdisk = compression.Compress(ramdisk, CompressionEngine.CompressionFormat.Gzip);
             }
 
-            writer.Write("VNDRBOOT"u8.ToArray());
-            // header_version at offset 8
-            writer.Write(headerVersion);
-            // page_size at offset 12
-            var pageSize = 4096u;
-            writer.Write(pageSize);
-            // kernel_addr at offset 16
-            writer.Write(0x00008000u);
-            // ramdisk_addr at offset 20
-            writer.Write(0x01000000u);
-            // ramdisk_size at offset 24
-            writer.Write((uint)vendorRamdisk.Length);
-            // cmdline (2048 bytes) at offset 28
+            const uint pageSize = 4096;
+            writer.Write("VNDRBOOT"u8.ToArray());          // offset 0
+            writer.Write(headerVersion);                  // offset 8
+            writer.Write(pageSize);                       // offset 12
+            writer.Write(0x00008000u);                      // offset 16 kernel_addr
+            writer.Write(0x01000000u);                    // offset 20 ramdisk_addr
+            writer.Write((uint)vendorRamdisk.Length);     // offset 24 ramdisk_size
             ms.Position = 28;
-            writer.Write(new byte[2048]);
-            // tags_addr at offset 2076
+            writer.Write(new byte[2048]);                 // offset 28 cmdline
             ms.Position = 2076;
-            writer.Write(0x00000100u);
-            // name (16 bytes) at offset 2080
+            writer.Write(0x00000100u);                    // offset 2076 tags_addr
             ms.Position = 2080;
-            writer.Write(new byte[16]);
-            // header_size at offset 2096
+            writer.Write(new byte[16]);                   // offset 2080 name
             ms.Position = 2096;
-            writer.Write(2112u); // Vendor V3 header size
-            // dtb_size at offset 2100
+            writer.Write(2112u);                          // offset 2096 header_size
             ms.Position = 2100;
-            writer.Write((uint)(dtb?.Length ?? 0));
-            // dtb_addr at offset 2104
+            writer.Write((uint)(dtb?.Length ?? 0));      // offset 2100 dtb_size
             ms.Position = 2104;
-            writer.Write(0x02000000ul);
+            writer.Write(0x02000000ul);                   // offset 2104 dtb_addr
 
-            // Pad to page boundary
             ms.Position = pageSize;
-            // Vendor boot has no kernel — write compressed ramdisk directly
             writer.Write(vendorRamdisk);
-            // Pad ramdisk to page boundary
-            var ramdiskPages = (vendorRamdisk.Length + pageSize - 1) / pageSize;
-            ms.Position = pageSize + ramdiskPages * pageSize;
-            // Write DTB if present
+            ms.Position = pageSize + AlignUp(vendorRamdisk.Length, pageSize);
             if (dtb != null && dtb.Length > 0)
                 writer.Write(dtb);
         }
-        else
+        else if (headerVersion <= 2)
         {
-            // Standard AOSP boot: ANDROID! magic + v0 header + kernel + ramdisk
-            writer.Write("ANDROID!"u8.ToArray());
-
-            var headerSize = 1648;
-            var pageSize = 2048;
-
-            writer.Write(new byte[headerSize - 8]); // Zero-fill rest of header
-
-            // Write kernel size at offset 8
+            // AOSP v0/v1/v2 share the same base layout
+            const uint pageSize = 2048;
+            writer.Write("ANDROID!"u8.ToArray());           // offset 0
             ms.Position = 8;
-            writer.Write((uint)kernel.Length);
-            // Write kernel addr at offset 12
-            writer.Write(0x00008000u);
-            // Write ramdisk size at offset 16
-            writer.Write((uint)ramdisk.Length);
-            // Write ramdisk addr at offset 20
-            writer.Write(0x01000000u);
-            // Write second size at offset 24
-            writer.Write(0u);
-            // Write tags addr at offset 28
-            writer.Write(0x00000100u);
-            // Write page size at offset 32
-            writer.Write((uint)pageSize);
-            // Write header version at offset 36
-            writer.Write(headerVersion);
-            // Write os version at offset 40
-            writer.Write(0u);
-            // Write name at offset 48
+            writer.Write((uint)kernel.Length);            // offset 8 kernel_size
+            writer.Write(0x00008000u);                    // offset 12 kernel_addr
+            writer.Write((uint)ramdisk.Length);           // offset 16 ramdisk_size
+            writer.Write(0x01000000u);                    // offset 20 ramdisk_addr
+            writer.Write(0u);                             // offset 24 second_size
+            writer.Write(0u);                             // offset 28 second_addr
+            writer.Write(0x00000100u);                    // offset 32 tags_addr
+            writer.Write(pageSize);                       // offset 36 page_size
+            writer.Write(headerVersion);                  // offset 40 header_version
+            writer.Write(0u);                             // offset 44 os_version
             ms.Position = 48;
-            writer.Write(new byte[16]);
-            // Write cmdline at offset 64
+            writer.Write(new byte[16]);                   // offset 48 name
             ms.Position = 64;
-            writer.Write(new byte[512]);
+            writer.Write(new byte[512]);                  // offset 64 cmdline
+            ms.Position = 576;
+            writer.Write(new byte[32]);                   // offset 576 id
+            ms.Position = 608;
+            writer.Write(new byte[1024]);                 // offset 608 extra_cmdline
 
-            // Pad to page boundary
+            if (headerVersion >= 1)
+            {
+                ms.Position = 1632;
+                writer.Write(0u);                         // offset 1632 recovery_dtbo_size
+                ms.Position = 1636;
+                writer.Write(0ul);                        // offset 1636 recovery_dtbo_offset
+                ms.Position = 1644;
+                writer.Write(headerVersion == 1 ? 1660u : 1660u); // offset 1644 header_size
+            }
+
+            if (headerVersion == 2)
+            {
+                ms.Position = 1648;
+                writer.Write((uint)(dtb?.Length ?? 0));  // offset 1648 dtb_size
+                ms.Position = 1652;
+                writer.Write(0x02000000ul);               // offset 1652 dtb_addr
+            }
+
             ms.Position = pageSize;
             writer.Write(kernel);
-            // Pad kernel to page boundary
-            var kernelPages = (kernel.Length + pageSize - 1) / pageSize;
-            ms.Position = pageSize + kernelPages * pageSize;
+            ms.Position = pageSize + AlignUp(kernel.Length, pageSize);
             writer.Write(ramdisk);
+
+            if (headerVersion == 2 && dtb != null && dtb.Length > 0)
+            {
+                ms.Position = pageSize + AlignUp(kernel.Length, pageSize) + AlignUp(ramdisk.Length, pageSize);
+                writer.Write(dtb);
+            }
+        }
+        else
+        {
+            // AOSP v3/v4: fixed 4096-byte header, no kernel_addr/second/etc
+            const uint pageSize = 4096;
+            writer.Write("ANDROID!"u8.ToArray());           // offset 0
+            ms.Position = 8;
+            writer.Write((uint)kernel.Length);            // offset 8 kernel_size
+            writer.Write((uint)ramdisk.Length);             // offset 12 ramdisk_size
+            writer.Write(0u);                             // offset 16 os_version
+            writer.Write(headerVersion == 3 ? 4096u : 4096u); // offset 20 header_size
+            writer.Write(0u);                             // offset 24 reserved_0
+            writer.Write(0u);                             // offset 28 reserved_1
+            writer.Write(0u);                             // offset 32 reserved_2
+            writer.Write(0u);                             // offset 36 reserved_3
+            writer.Write(headerVersion);                  // offset 40 header_version
+            ms.Position = 44;
+            writer.Write(new byte[1536]);                 // offset 44 cmdline
+
+            if (headerVersion == 4)
+            {
+                ms.Position = 1580;
+                writer.Write((uint)(sig?.Length ?? 0));  // offset 1580 signature_size
+            }
+
+            ms.Position = pageSize;
+            writer.Write(kernel);
+            ms.Position = pageSize + AlignUp(kernel.Length, pageSize);
+            writer.Write(ramdisk);
+
+            if (headerVersion == 4 && sig != null && sig.Length > 0)
+            {
+                ms.Position = pageSize + AlignUp(kernel.Length, pageSize) + AlignUp(ramdisk.Length, pageSize);
+                writer.Write(sig);
+            }
         }
 
         return ms.ToArray();
+    }
+
+    private static int AlignUp(int value, uint alignment)
+    {
+        if (alignment == 0) return value;
+        var a = (int)alignment;
+        return (value + a - 1) / a * a;
     }
 
     [Fact]

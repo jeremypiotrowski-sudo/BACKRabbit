@@ -488,43 +488,62 @@ public class BootImageRepacker
 
     private uint GetHeaderSize(BootImage img)
     {
-        const uint MinSafeHeaderSize = 4096; // Fallback when page_size is 0 (synthetic test images)
-
+        // Returns the STRUCT SIZE of the header for buffer allocation.
+        // File alignment/padding uses GetPageSize().
         if (img.IsVendor)
         {
-            var vendorSize = img.HeaderVersion == 4 
+            return img.HeaderVersion == 4 
                 ? img.HeaderV4Vendor.header_size 
                 : img.HeaderV3Vendor.header_size;
-            return vendorSize > 0 ? vendorSize : MinSafeHeaderSize;
+        }
+        if (img.Flags.IsPxa)
+        {
+            return (uint)Marshal.SizeOf<BootImgHdrPxa>();
         }
         return img.HeaderVersion switch
         {
-            0 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
-            1 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
-            2 => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize,
-            3 => 4096,
-            4 => 4096,
-            _ => GetPageSize(img) > 0 ? GetPageSize(img) : MinSafeHeaderSize
+            0 => 1632,
+            1 => 1660,
+            2 => 1660,
+            3 => img.HeaderV3.header_size,
+            4 => img.HeaderV4.header_size,
+            _ => 4096
         };
     }
 
     private uint GetPageSize(BootImage img)
     {
+        // Returns the alignment/page size used to pad headers and sections.
+        // Defaults to 4096 to avoid divide-by-zero on malformed images.
+        uint pageSize;
         if (img.IsVendor)
         {
-            return img.HeaderVersion == 4 
+            pageSize = img.HeaderVersion == 4 
                 ? img.HeaderV4Vendor.page_size 
                 : img.HeaderV3Vendor.page_size;
         }
-        if (img.Flags.IsPxa)
+        else if (img.Flags.IsPxa)
         {
-            return img.HeaderPxa.page_size;
+            pageSize = img.HeaderPxa.page_size;
         }
-        return img.HeaderVersion >= 3 ? 4096u : img.HeaderV0.page_size;
+        else
+        {
+            pageSize = img.HeaderVersion switch
+            {
+                0 => img.HeaderV0.page_size,
+                1 => img.HeaderV1.page_size,
+                2 => img.HeaderV2.page_size,
+                3 => 4096,
+                4 => 4096,
+                _ => 4096
+            };
+        }
+        return pageSize > 0 ? pageSize : 4096;
     }
 
     private static void PadTo(Stream ms, long position, uint alignment)
     {
+        if (alignment == 0) return;
         var aligned = (position + alignment - 1) / alignment * alignment;
         var padding = aligned - position;
         if (padding > 0)
