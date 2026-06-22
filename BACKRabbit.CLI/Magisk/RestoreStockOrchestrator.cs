@@ -277,12 +277,16 @@ public class RestoreStockOrchestrator
         analysis.DataAdbListing = analysis.MagiskStatus.HasAdbDirectory
             ? (analysis.MagiskStatus.IsAdbReadable ? "READABLE" : "LOCKED (SELinux — Permission denied)")
             : "NOT PRESENT";
-        analysis.Overlays = await _adb.ExecuteShellAsync("mount 2>&1 | grep overlay || echo 'NO_OVERLAYS'", ct);
+        // Magisk overlay system detection — Magisk uses BIND MOUNTS, not kernel overlayfs.
+        // /data/adb IS the overlay system: modules, scripts, binaries, configuration.
+        // Check bind mounts, /data/adb subdirectories, and Magisk daemon.
+        analysis.OverlaySystem = await CheckMagiskOverlaySystemAsync(ct);
+        analysis.Overlays = analysis.OverlaySystem.Summary;
 
         // Determine verdict
         analysis.BootPullFailed = !analysis.BootPulled;
         analysis.HasAdbDirectory = analysis.MagiskStatus.HasAdbDirectory;
-        analysis.HasOverlays = !analysis.Overlays.Contains("NO_OVERLAYS");
+        analysis.HasOverlays = analysis.OverlaySystem.IsActive;
         analysis.HasMagiskArtifacts = analysis.CurrentArtifactResult?.IsMagiskInstalled ?? false;
 
         // Verdict logic:
@@ -553,6 +557,68 @@ public class RestoreStockOrchestrator
         return Convert.ToHexString(SHA256.HashData(data)).ToLowerInvariant();
     }
 
+    /// <summary>
+    /// Comprehensive Magisk overlay system detection.
+    /// Magisk uses BIND MOUNTS (not kernel overlayfs) via Magic Mount.
+    /// /data/adb IS the overlay system — modules, scripts, binaries, configuration.
+    /// </summary>
+    private async Task<MagiskOverlaySystemStatus> CheckMagiskOverlaySystemAsync(CancellationToken ct)
+    {
+        var status = new MagiskOverlaySystemStatus();
+
+        // Check bind mounts (Magisk's actual mechanism)
+        var bindMounts = await _adb.ExecuteShellAsync("cat /proc/mounts 2>&1 | grep -i bind || echo 'NO_BIND_MOUNTS'", ct);
+        status.BindMountsFound = !bindMounts.Contains("NO_BIND_MOUNTS");
+        status.BindMountsRaw = bindMounts.Trim();
+
+        // Check for Magisk-specific mounts
+        var magiskMounts = await _adb.ExecuteShellAsync("cat /proc/mounts 2>&1 | grep /data/adb || echo 'NO_MAGISK_MOUNTS'", ct);
+        status.MagiskMountsFound = !magiskMounts.Contains("NO_MAGISK_MOUNTS");
+
+        // Check /data/adb subdirectories (permission denied = exists, SELinux locked)
+        var magiskBinary = await _adb.ExecuteShellAsync("ls /data/adb/magisk 2>&1 || echo 'NOT_FOUND'", ct);
+        status.MagiskBinaryPresent = magiskBinary.Contains("Permission denied");
+
+        var modules = await _adb.ExecuteShellAsync("ls /data/adb/modules 2>&1 || echo 'NOT_FOUND'", ct);
+        status.ModulesPresent = modules.Contains("Permission denied");
+
+        var postFsData = await _adb.ExecuteShellAsync("ls /data/adb/post-fs-data.d 2>&1 || echo 'NOT_FOUND'", ct);
+        status.PostFsScriptsPresent = postFsData.Contains("Permission denied");
+
+        var serviceD = await _adb.ExecuteShellAsync("ls /data/adb/service.d 2>&1 || echo 'NOT_FOUND'", ct);
+        status.ServiceScriptsPresent = serviceD.Contains("Permission denied");
+
+        // Check Magisk daemon
+        var daemon = await _adb.ExecuteShellAsync("ps 2>&1 | grep magisk || pgrep magisk 2>&1 || echo 'NO_DAEMON'", ct);
+        status.DaemonRunning = !daemon.Contains("NO_DAEMON") && !daemon.Contains("not found") && !daemon.Contains("inaccessible");
+
+        // Determine overlay system status
+        if (status.BindMountsFound || status.MagiskMountsFound || status.DaemonRunning)
+            status.IsActive = true;
+        else if (status.MagiskBinaryPresent || status.ModulesPresent || status.PostFsScriptsPresent || status.ServiceScriptsPresent)
+            status.IsResidual = true;
+
+        // Build summary
+        var sb = new StringBuilder();
+        sb.AppendLine("### Magisk Overlay System Analysis");
+        sb.AppendLine($"- /data/adb/magisk: {(status.MagiskBinaryPresent ? "permission denied (binary present)" : "not found")}");
+        sb.AppendLine($"- /data/adb/modules: {(status.ModulesPresent ? "permission denied (modules present)" : "not found")}");
+        sb.AppendLine($"- /data/adb/post-fs-data.d: {(status.PostFsScriptsPresent ? "permission denied (scripts present)" : "not found")}");
+        sb.AppendLine($"- /data/adb/service.d: {(status.ServiceScriptsPresent ? "permission denied (scripts present)" : "not found")}");
+        sb.AppendLine($"- Bind mounts referencing /data/adb: {(status.MagiskMountsFound ? "found" : "none")}");
+        sb.AppendLine($"- Magisk daemon process: {(status.DaemonRunning ? "detected" : "not detected")}");
+        sb.Append($"- Overlay system: ");
+        if (status.IsActive)
+            sb.AppendLine("ACTIVE (bind mounts or daemon running)");
+        else if (status.IsResidual)
+            sb.AppendLine("RESIDUAL (directory structure exists, no active mounts)");
+        else
+            sb.AppendLine("ABSENT");
+
+        status.Summary = sb.ToString();
+        return status;
+    }
+
     private void WriteLine(string message = "")
     {
         _log.Add(message);
@@ -647,4 +713,25 @@ public class RestoreStockAnalysis
     public bool HasOverlays { get; set; }
     public bool HasMagiskArtifacts { get; set; }
     public string Verdict { get; set; } = "";
+    public MagiskOverlaySystemStatus? OverlaySystem { get; set; }
+}
+
+/// <summary>
+/// Comprehensive Magisk overlay system status.
+/// Magisk uses BIND MOUNTS (not kernel overlayfs) via Magic Mount.
+/// /data/adb IS the overlay system.
+/// </summary>
+public class MagiskOverlaySystemStatus
+{
+    public bool IsActive { get; set; }
+    public bool IsResidual { get; set; }
+    public bool BindMountsFound { get; set; }
+    public string BindMountsRaw { get; set; } = "";
+    public bool MagiskMountsFound { get; set; }
+    public bool MagiskBinaryPresent { get; set; }
+    public bool ModulesPresent { get; set; }
+    public bool PostFsScriptsPresent { get; set; }
+    public bool ServiceScriptsPresent { get; set; }
+    public bool DaemonRunning { get; set; }
+    public string Summary { get; set; } = "";
 }
