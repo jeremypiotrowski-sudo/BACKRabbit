@@ -259,8 +259,44 @@ This index maps every BACKRabbit C# function to its corresponding Magisk C++/Rus
 
 ---
 
+## Firehose Protocol ↔ Source Code
+
+| Firehose KB Document | Source File | Lines | Purpose |
+|----------------------|-------------|-------|---------|
+| `firehose/OPERATIONS.md` | `FirehoseClient.cs` | 406 | Firehose XML command execution |
+| `firehose/OPERATIONS.md` | `SaharaStateMachine.cs` | 65 | EDL handshake state machine |
+| `firehose/OPERATIONS.md` | `SaharaLoaderUploader.cs` | — | Programmer ELF upload in 4KB chunks |
+| `firehose/OPERATIONS.md` | `WinUsbTransport.cs` | 115 | USB transport (EP 0x02 OUT, EP 0x81 IN) |
+| `firehose/OPERATIONS.md` | `UsbDeviceManager.cs` | 468 | LibUsbDotNet wrapper, Samsung VID/PID detection |
+| `firehose/FAILURES.md` | `PartitionDiagnostics.cs` | ~200 | GPT validation, SHA256 comparison, 6 validation rules |
+| `firehose/FAILURES.md` | `PartitionRestorer.cs` | ~150 | Flash + verify with retry, blocklist enforcement |
+| `firehose/FAILURES.md` | `MagiskRemover.cs` | ~200 | Magisk detection + removal + verification |
+| `firehose/DESIGN.md` | `RescueOrchestrator.cs` | 152 | 7-phase rescue pipeline, flash-then-patch ordering |
+| `firehose/DESIGN.md` | `FirmwareSourcer.cs` | 320 | Dual-method FUS auth, .enc4 decryption |
+| `firehose/DESIGN.md` | `CompressionEngine.cs` | 206 | Pure C# compression (no CLI fallbacks) |
+| `firehose/BUILD.md` | `BACKRabbit.CLI.csproj` | — | NuGet dependency graph, publish configuration |
+
+---
+
+## Knowledge Base Cross-Reference Map
+
+| From | To | Topic |
+|------|----|-------|
+| `OFFLINE_AGENT_GUIDE.md` | `firehose/DESIGN.md` | MagiskCore↔Firehose handoff (Design Decision 11) |
+| `OFFLINE_AGENT_GUIDE.md` | `firehose/FAILURES.md` | Magisk artifact detection failure modes |
+| `firehose/OPERATIONS.md` | `OFFLINE_AGENT_GUIDE.md` | Magisk artifact signatures table |
+| `firehose/OPERATIONS.md` | `firehose/FAILURES.md` | Sahara/Firehose error codes and recovery |
+| `firehose/OPERATIONS.md` | `firehose/DESIGN.md` | Sequential USB transfer rationale (Design Decision 1) |
+| `firehose/FAILURES.md` | `OFFLINE_AGENT_GUIDE.md` | 5 common debugging scenarios |
+| `firehose/FAILURES.md` | `firehose/DESIGN.md` | Forensic evidence preservation (Design Decision 5) |
+| `firehose/DESIGN.md` | `OFFLINE_AGENT_GUIDE.md` | MagiskCore architecture and file ranking |
+| `firehose/DESIGN.md` | `firehose/BUILD.md` | Build stick points and NuGet mirror |
+| `HEALTH_CHECK.md` | `firehose/BUILD.md` | Offline build viability, test suite status |
+
+---
+
 ## Last Updated
-2026-06-18 — Generated from git mirror extraction and codebase audit
+2026-06-21 — Merged Firehose knowledge base, added cross-reference map
 
 ---
 

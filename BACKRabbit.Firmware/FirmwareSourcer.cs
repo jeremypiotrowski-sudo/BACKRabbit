@@ -8,9 +8,11 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using BACKRabbit.Protocol.Adb;
 
 namespace BACKRabbit.Firmware;
 
@@ -43,6 +45,7 @@ public class FirmwareSourcer
     /// <param name="region">CSC/region code (e.g., XAA)</param>
     /// <param name="imei">Device IMEI for FUS authentication (optional but recommended)</param>
     /// <param name="outputDir">Directory to save extracted .img files</param>
+    /// <param name="deviceSerial">Optional ADB device serial for CSC auto-detection</param>
     /// <param name="progress">Optional progress reporter (0.0–1.0)</param>
     /// <param name="ct">Cancellation token</param>
     public async Task<FirmwareSourceResult> SourceAsync(
@@ -50,6 +53,7 @@ public class FirmwareSourcer
         string region,
         string? imei,
         string outputDir,
+        string? deviceSerial = null,
         IProgress<FirmwareDownloadProgress>? progress = null,
         CancellationToken ct = default)
     {
@@ -60,6 +64,24 @@ public class FirmwareSourcer
         };
 
         Directory.CreateDirectory(outputDir);
+
+        // Phase 0: Auto-detect CSC if device connected and region not provided
+        string? detectedCsc = null;
+        if (string.IsNullOrWhiteSpace(region) && !string.IsNullOrWhiteSpace(deviceSerial))
+        {
+            detectedCsc = await DetectCscViaAdbAsync(deviceSerial, ct);
+            if (!string.IsNullOrWhiteSpace(detectedCsc))
+            {
+                region = detectedCsc;
+                result.Region = region;
+                result.IsCscAutoDetected = true;
+                Console.WriteLine($"📱 Auto-detected CSC: {region} (from device)");
+            }
+            else
+            {
+                Console.WriteLine("⚠️ Could not auto-detect CSC — region will be required");
+            }
+        }
 
         // Phase 1: Query FUS for firmware info
         progress?.Report(new FirmwareDownloadProgress
@@ -160,6 +182,44 @@ public class FirmwareSourcer
             }
         }
 
+        // Also extract CP (modem) files if present
+        var cpFile = Directory.GetFiles(extractDir, "CP_*.tar.md5")
+            .Concat(Directory.GetFiles(extractDir, "CP_*.tar"))
+            .FirstOrDefault();
+
+        if (cpFile != null)
+        {
+            var cpPackage = SamsungFirmwareExtractor.ExtractTarMd5(cpFile);
+            foreach (var partition in cpPackage.Partitions)
+            {
+                if (!result.ExtractedPartitions.Contains(partition.Key))
+                {
+                    var imgPath = Path.Combine(outputDir, $"{partition.Key}.img");
+                    await File.WriteAllBytesAsync(imgPath, partition.Value, ct);
+                    result.ExtractedPartitions.Add(partition.Key);
+                }
+            }
+        }
+
+        // Also extract HOME_CSC files if present
+        var homeCscFile = Directory.GetFiles(extractDir, "HOME_CSC_*.tar.md5")
+            .Concat(Directory.GetFiles(extractDir, "HOME_CSC_*.tar"))
+            .FirstOrDefault();
+
+        if (homeCscFile != null)
+        {
+            var homeCscPackage = SamsungFirmwareExtractor.ExtractTarMd5(homeCscFile);
+            foreach (var partition in homeCscPackage.Partitions)
+            {
+                if (!result.ExtractedPartitions.Contains(partition.Key))
+                {
+                    var imgPath = Path.Combine(outputDir, $"{partition.Key}.img");
+                    await File.WriteAllBytesAsync(imgPath, partition.Value, ct);
+                    result.ExtractedPartitions.Add(partition.Key);
+                }
+            }
+        }
+
         // Clean up extracted temp dir
         try { Directory.Delete(extractDir, true); } catch { }
 
@@ -168,6 +228,25 @@ public class FirmwareSourcer
             Phase = "Complete",
             PercentComplete = 1.0
         });
+
+        // Phase 6: Query binary info for anti-rollback awareness
+        try
+        {
+            var binaryInfo = await QueryBinaryInfoAsync(model, region, authToken, ct);
+            if (binaryInfo != null)
+            {
+                result.BootloaderVersion = binaryInfo.BootloaderVersion;
+                result.SecurityPatchLevel = binaryInfo.SecurityPatchLevel;
+                if (!string.IsNullOrWhiteSpace(binaryInfo.BootloaderVersion))
+                    Console.WriteLine($"🔓 Bootloader version: {binaryInfo.BootloaderVersion}");
+                if (!string.IsNullOrWhiteSpace(binaryInfo.SecurityPatchLevel))
+                    Console.WriteLine($"🔒 Security patch level: {binaryInfo.SecurityPatchLevel}");
+            }
+        }
+        catch
+        {
+            // Binary info is non-critical — continue without it
+        }
 
         result.Success = true;
         result.FirmwarePath = outputDir;
@@ -385,6 +464,90 @@ public class FirmwareSourcer
         File.WriteAllBytes(outputPath, plaintext);
     }
 
+    /// <summary>
+    /// Auto-detect CSC (region code) from a connected device via ADB.
+    /// Queries ro.csc.country_code property on Samsung stock ROMs.
+    /// </summary>
+    private static async Task<string?> DetectCscViaAdbAsync(string deviceSerial, CancellationToken ct)
+    {
+        try
+        {
+            using var adb = new AdbClient();
+            var connected = await adb.ConnectTcpAsync("127.0.0.1", 5555, ct);
+            if (!connected)
+                return null;
+
+            // Query CSC country code (works on stock Samsung ROMs)
+            var cscProp = await adb.ExecuteShellAsync("getprop ro.csc.country_code", ct);
+            var csc = cscProp?.Trim().ToUpperInvariant() ?? "";
+
+            // Validate CSC format (2-3 letter country code)
+            if (Regex.IsMatch(csc, @"^[A-Z]{2,3}$"))
+                return csc;
+
+            // Fallback: try ro.product.csc.country_code
+            var cscProp2 = await adb.ExecuteShellAsync("getprop ro.product.csc.country_code", ct);
+            var csc2 = cscProp2?.Trim().ToUpperInvariant() ?? "";
+            if (Regex.IsMatch(csc2, @"^[A-Z]{2,3}$"))
+                return csc2;
+
+            return null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Query binary.xml for bootloader version and security patch level.
+    /// Provides anti-rollback awareness before flashing.
+    /// </summary>
+    private async Task<BinaryInfo?> QueryBinaryInfoAsync(
+        string model, string region, string authToken, CancellationToken ct)
+    {
+        try
+        {
+            var url = $"{FusBaseUrl}/{model}/{region}/binary.xml";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.TryAddWithoutValidation("Authorization", $"Bearer {authToken}");
+            request.Headers.TryAddWithoutValidation("X-Auth-Token", authToken);
+
+            using var response = await _http.SendAsync(request, ct);
+            if (!response.IsSuccessStatusCode)
+                return null;
+
+            var xml = await response.Content.ReadAsStringAsync(ct);
+            var doc = XDocument.Parse(xml);
+            var root = doc.Root;
+            if (root == null) return null;
+
+            var info = new BinaryInfo();
+
+            // Extract bootloader version
+            var blNode = root.Element("BL");
+            if (blNode != null)
+            {
+                info.BootloaderVersion = blNode.Attribute("Ver")?.Value
+                    ?? blNode.Value?.Trim();
+            }
+
+            // Extract security patch level
+            var splNode = root.Element("SPL");
+            if (splNode != null)
+            {
+                info.SecurityPatchLevel = splNode.Value?.Trim();
+            }
+
+            return info;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     private static string FormatBytes(long bytes)
     {
         if (bytes >= 1_000_000_000) return $"{bytes / 1_000_000_000.0:F1} GB";
@@ -399,6 +562,12 @@ public class FirmwareSourcer
         public string BuildDate { get; set; } = "";
         public long Size { get; set; }
         public string DownloadPath { get; set; } = "";
+    }
+
+    private class BinaryInfo
+    {
+        public string? BootloaderVersion { get; set; }
+        public string? SecurityPatchLevel { get; set; }
     }
 }
 
@@ -415,6 +584,9 @@ public class FirmwareSourceResult
     public string FirmwarePath { get; set; } = "";
     public List<string> ExtractedPartitions { get; set; } = new();
     public bool Success { get; set; }
+    public bool IsCscAutoDetected { get; set; }
+    public string? BootloaderVersion { get; set; }
+    public string? SecurityPatchLevel { get; set; }
 }
 
 /// <summary>

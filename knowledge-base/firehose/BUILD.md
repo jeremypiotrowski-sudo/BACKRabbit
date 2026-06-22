@@ -206,3 +206,13 @@ dist\backrabbit.exe --version
 ```
 
 Current: `9d328fe` (2026-06-21)
+
+---
+
+## Cross-References
+
+- **Operations manual**: See `OPERATIONS.md` for Sahara handshake and Firehose XML commands
+- **Failure modes**: See `FAILURES.md` for 15 documented failure modes with recovery procedures
+- **Design rationale**: See `DESIGN.md` for 11 design decisions including MagiskCore↔Firehose handoff
+- **MagiskCore build**: See `../OFFLINE_AGENT_GUIDE.md` for MagiskCore architecture and file ranking
+- **Health check**: See `../HEALTH_CHECK.md` for system validation commands

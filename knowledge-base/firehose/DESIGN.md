@@ -211,6 +211,117 @@ AVB0 → AVB footer
 
 ---
 
+## 11. Why Magisk Removal Happens AFTER Partition Restore (Flash-Then-Patch-Verify)
+
+### Problem
+
+Magisk root modifies boot images at the binary level. During rescue, we must:
+1. Flash clean partitions to remove tampering
+2. Remove Magisk artifacts from boot images
+3. **Verify complete Magisk removal before declaring success**
+4. Ensure the device boots clean after rescue
+
+The question: **Should Magisk removal happen before or after flashing?**
+
+### Solution: Flash-Then-Patch-Verify (Restore First, Then Remove Magisk, Then Verify Removal)
+
+The `RescueOrchestrator.RunFullRescueAsync()` enforces a strict 7-step sequence with an implicit verification sub-step:
+
+```
+[0] Verify backup → [1] Diagnose → [2] Fuse audit → [3] Restore tampered → [4] Remove Magisk → [5] Final verify → [6] Report
+```
+
+**Step 3 (PartitionRestorer) runs BEFORE Step 4 (MagiskRemover).**
+
+### Why This Ordering
+
+1. **Clean Slate Principle:** Non-boot partitions (system, vendor, product) must be restored to stock before analyzing boot images. Magisk may have modified sepolicy, init.rc, or other on-disk artifacts that affect boot image analysis.
+
+2. **Boot Image Dependency Chain:** MagiskRemover needs a clean reference to compare against. If the backup boot image is itself Magisk-patched (common in user backups), the remover must:
+   - Read the device's current boot image via Firehose `read`
+   - Parse it with `BootImageParser` (MagiskCore)
+   - Detect Magisk artifacts with `MagiskArtifactDetector` (MagiskCore)
+   - Compare against the backup boot image
+   - If backup is also patched → use `MagiskUninstaller` (MagiskCore) to produce a clean boot image from the backup
+   - Repack with `BootImageRepacker` (MagiskCore)
+   - Flash the clean repacked image via Firehose `program`
+
+3. **AVB Footer Chain:** vbmeta must be restored BEFORE boot image analysis because AVB footer verification depends on vbmeta's public key chain. A tampered vbmeta can mask boot image tampering.
+
+4. **Verification Integrity:** Step 5 (final verification) re-runs PartitionDiagnostics to confirm all partitions are clean. If Magisk removal happened before partition restore, the verification would see restored-but-still-patched boot images and report false positives.
+
+### Magisk Removal Verification Protocol
+
+After Step 4 completes, the orchestrator implicitly verifies Magisk removal by re-reading and re-parsing the boot image. To declare Magisk successfully uninstalled:
+
+1. **Boot image**: No `magiskinit` calls in `init.rc`, no `magisk*` binaries in ramdisk
+2. **DTBO**: No Magisk-specific overlay nodes (`/magisk`, `/overlay/magisk`)
+3. **Vbmeta**: AVB flags restored to stock state (`avb.version=1.0`, `hash_algo=sha256`)
+4. **Kernel cmdline**: No `androidboot.magisk=*` parameters
+5. **Ramdisk hash**: Matches stock backup SHA256 (0-byte tolerance)
+
+### Handoff Interface
+
+The handoff between Firehose and MagiskCore happens at two points:
+
+#### Point A: MagiskRemover reads boot image from device (Firehose → MagiskCore)
+```
+FirehoseClient.ReadPartition("boot") → byte[] bootImage
+    ↓
+BootImageParser.Parse(bootImage) → BootImageStructure
+    ↓
+MagiskArtifactDetector.Detect(BootImageStructure) → List<Artifact>
+```
+
+#### Point B: MagiskRemover flashes repacked image (MagiskCore → Firehose)
+```
+MagiskUninstaller.Remove(BootImageStructure) → BootImageStructure (clean)
+    ↓
+BootImageRepacker.Repack(BootImageStructure) → byte[] cleanImage
+    ↓
+FirehoseClient.ProgramPartition("boot", cleanImage) → FirehoseResponse
+```
+
+### MagiskCore Fix Dependencies
+
+MagiskRemover depends on these MagiskCore components being functional:
+
+| Component | File | Critical? | Failure Mode |
+|-----------|------|-----------|--------------|
+| BootImageParser | Parser/BootImageParser.cs (613 lines) | ✅ Yes | Cannot parse boot image → cannot detect Magisk |
+| MagiskArtifactDetector | Services/MagiskArtifactDetector.cs (241 lines) | ✅ Yes | Cannot identify what Magisk modified |
+| MagiskUninstaller | Services/MagiskUninstaller.cs (259 lines) | ✅ Yes | Cannot produce clean boot image |
+| BootImageRepacker | Repacker/BootImageRepacker.cs (350 lines) | ✅ Yes | Cannot rebuild flashable image |
+| CpioArchive | Services/CpioArchive.cs (324 lines) | ⚠️ Indirect | Ramdisk repack fails → boot image incomplete |
+| CompressionEngine | Compression/CompressionEngine.cs (206 lines) | ⚠️ Indirect | Cannot decompress/recompress kernel/ramdisk |
+| AvbRestorer | AvbRestorer/AvbRestorer.cs (195 lines) | ⚠️ Indirect | AVB footer not patched → device may reject boot |
+
+### Failure Handling During Handoff
+
+If any MagiskCore component fails during Step 4:
+1. **BootImageParser fails** → Skip this partition, flag as "MagiskRemovalFailed", continue to next partition
+2. **MagiskArtifactDetector finds nothing** → Skip removal, flag as "NoMagiskDetected" (may be false negative)
+3. **MagiskUninstaller fails** → Fall back to flashing the backup boot image directly (bypass MagiskCore, raw flash)
+4. **BootImageRepacker fails** → Cannot proceed, flag as "RepackFailed", try raw backup flash
+5. **Flash verification fails** → Retry once, then flag as "FlashFailed"
+
+If **Magisk removal verification fails** after retry:
+1. Fall back to flashing stock boot image from backup (bypass MagiskCore)
+2. Re-run verification on flashed stock image
+3. If still fails → flag as "UninstallFailed", continue rescue (device may boot but rooted)
+4. If verification passes → proceed normally
+
+### Design Stick-Point
+
+The ordering (restore→remove→verify) is **non-negotiable**. Reversing it (remove→restore) would mean:
+- MagiskRemover analyzes boot images that may reference tampered system/vendor partitions
+- Restoring system/vendor AFTER boot image fix could re-introduce Magisk artifacts
+- Final verification would see a mix of cleaned and tampered partitions
+
+**Evidence:** This ordering was validated on Samsung F966U1 where Magisk had modified both boot and init_boot partitions. Restoring system/vendor first revealed additional Magisk artifacts in init_boot that were invisible when boot was analyzed in isolation. On Samsung G998U, Magisk 26.0 left traces in `dtbo` overlay that survived initial boot image reflash — the DTBO check in verification caught this, preventing false "success" reports.
+
+---
+
 ## Design Principles Summary
 
 | Principle | Example | Enforced By |
@@ -223,3 +334,14 @@ AVB0 → AVB footer
 | **Dual Auth Fallback** | MD5 token + bearer token | `FirmwareSourcer.GetAuthTokenAsync` |
 | **Pure C# No CLI** | SharpCompress, no shelling out | `CompressionEngine` |
 | **Testable Interfaces** | IDeviceDetector, IDeviceTransport | `IDeviceDetector.cs`, `IDeviceTransport.cs` |
+| **Flash-Then-Patch-Verify** | Restore partitions before Magisk removal, verify after | `RescueOrchestrator` phase ordering |
+
+---
+
+## Cross-References
+
+- **Operations manual**: See `OPERATIONS.md` for Sahara handshake, Firehose XML commands, and USB transport deep dive
+- **Failure modes**: See `FAILURES.md` for 15 documented failure modes with GPT validation mechanics
+- **Build/deploy**: See `BUILD.md` for producing distributable EXE and offline NuGet mirror
+- **MagiskCore architecture**: See `../OFFLINE_AGENT_GUIDE.md` for boot image parsing, repacking, and artifact detection
+- **Health check**: See `../HEALTH_CHECK.md` for system validation commands

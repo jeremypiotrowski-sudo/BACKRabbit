@@ -12,6 +12,7 @@ public class PartitionRestorer
     private readonly FirehoseClient _client;
     private readonly string _backupDir;
     private readonly RescueReport _report;
+    private readonly bool _force;
 
     // Partitions that should NEVER be restored (device-unique or dangerous)
     private static readonly HashSet<string> _neverRestore = new(StringComparer.OrdinalIgnoreCase)
@@ -23,11 +24,12 @@ public class PartitionRestorer
         "msadp",     // Modem debug policy — device-specific
     };
 
-    public PartitionRestorer(FirehoseClient client, string backupDir, RescueReport report)
+    public PartitionRestorer(FirehoseClient client, string backupDir, RescueReport report, bool force = false)
     {
         _client = client;
         _backupDir = backupDir;
         _report = report;
+        _force = force;
     }
 
     public async Task<List<RestoreAction>> RestoreAsync(
@@ -43,8 +45,8 @@ public class PartitionRestorer
                 Action = "Skipped",
             };
 
-            // Safety: never restore dangerous partitions
-            if (_neverRestore.Contains(name))
+            // Safety: never restore dangerous partitions (unless --force)
+            if (_neverRestore.Contains(name) && !_force)
             {
                 action.Action = "Skipped";
                 action.SourceFile = "BLOCKED — device-unique partition, cannot restore";
@@ -52,6 +54,11 @@ public class PartitionRestorer
                 _report.RestoreActions.Add(action);
                 Console.WriteLine($"  {name}: SKIPPED (device-unique, dangerous to restore)");
                 continue;
+            }
+
+            if (_neverRestore.Contains(name) && _force)
+            {
+                Console.WriteLine($"  {name}: FORCE OVERRIDE — restoring despite blocklist (operator confirmed risk)");
             }
 
             var backupPath = Path.Combine(_backupDir, $"{name}.img");

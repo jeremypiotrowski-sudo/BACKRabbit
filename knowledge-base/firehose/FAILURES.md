@@ -119,3 +119,105 @@ Before starting any rescue operation:
 - [ ] IMEI available if FUS sourcing needed
 - [ ] USB cable is direct (no hub) for reliability
 - [ ] `dotnet test` passes for Firehose test suite (32 tests)
+
+---
+
+## GPT Validation Mechanics
+
+### Comparison Method
+
+`PartitionDiagnostics` performs byte-for-byte comparison between:
+1. **Device GPT** — Read from the device via Firehose `read` command (raw GPT header + partition entry array from LBA 1-N)
+2. **Reference GPT** — Extracted from the backup firmware's partition table (either from a full dump or from the firmware package's partition.xml/gpt_both0.bin)
+
+### Validation Rules
+
+#### Rule 1: Header Signature Match (Critical — Abort on Mismatch)
+- GPT header bytes 0-7 must equal "EFI PART" (0x45 0x46 0x49 0x20 0x50 0x41 0x52 0x54)
+- If device GPT lacks this signature → **Critical Abort**: device partition table is corrupted beyond repair
+- If reference GPT lacks this signature → **Warning**: backup may be invalid, continue with caution
+
+#### Rule 2: Header CRC32 Match (Critical — Abort on Mismatch)
+- GPT header CRC32 (bytes 16-19) must match computed CRC32 of header bytes 0-91
+- Mismatch on device → **Critical Abort**: GPT header corrupted
+- Mismatch on reference → **Warning**: backup GPT may be damaged
+
+#### Rule 3: Partition Entry Array CRC32 (Warning Only)
+- Partition entry array CRC32 must match expected value
+- Mismatch → **Warning**: entries may be corrupted, but individual partition validation can still proceed
+
+#### Rule 4: Partition Count Match (Warning Only)
+- Number of partition entries in device GPT vs reference GPT
+- Mismatch → **Warning**: partition layout has changed (could be legitimate OTA update or tampering)
+
+#### Rule 5: Per-Partition Byte-for-Byte Comparison (Tolerance: 0 bytes)
+- For each partition listed in the reference GPT:
+  - Read partition content from device via Firehose `read`
+  - Compare SHA256 against reference backup SHA256
+  - **Tolerance: 0 bytes** — any difference flags the partition as "Tampered"
+  - Exception: empty/unused partitions (all 0xFF or all 0x00) are skipped
+
+#### Rule 6: Critical Partition Abort Logic
+These partitions, if tampered, trigger an **immediate abort** of the rescue:
+- `partition` (partition table itself) — cannot flash without valid partition table
+- `xbl` / `xbl_a` — primary bootloader, corruption = brick
+- `abl` / `abl_a` — Android bootloader, corruption = brick
+- `devcfg` — device configuration fuses
+- `rpm` — resource power manager firmware
+
+These partitions, if tampered, are **flagged but rescue continues**:
+- `boot` / `boot_a` — recoverable via reflash
+- `init_boot` / `init_boot_a` — recoverable via reflash
+- `vbmeta` / `vbmeta_a` — recoverable via reflash with AVB disable flags
+- `recovery` / `recovery_a` — recoverable via reflash
+- `dtbo` / `dtbo_a` — recoverable via reflash
+
+### Tolerance Thresholds Table
+
+| Check | Tolerance | Action on Fail |
+|-------|-----------|----------------|
+| GPT signature ("EFI PART") | Exact match | Critical abort |
+| GPT header CRC32 | Exact match | Critical abort |
+| Partition entry CRC32 | Exact match | Warning, continue |
+| Partition count | Exact match | Warning, continue |
+| Per-partition SHA256 | Exact match | Flag "Tampered" |
+| Boot image header magic | Exact match ("ANDROID!") | Flag "Tampered" |
+| AVB footer magic | Exact match ("AVBf") | Flag "Tampered" |
+| Empty partition (all 0xFF/0x00) | N/A | Skip |
+| Magisk artifact in ramdisk | Any presence | Flag "MagiskDetected" |
+
+### Post-Restore Verification
+
+After `PartitionRestorer` flashes a partition:
+1. Read back the flashed partition from device
+2. Compute SHA256
+3. Compare against reference backup SHA256
+4. If mismatch → retry flash once (max 1 retry)
+5. If still mismatch → flag as "RestoreFailed" in RescueReport
+6. If match → flag as "Restored" with Verified=true
+
+### Magisk-Specific Tampering Patterns
+
+When validating partitions during Magisk uninstall prep, watch for:
+
+| Partition | Magisk Tampering Indicator | Action |
+|-----------|----------------------------|--------|
+| `boot`/`boot_a` | Modified `init.rc` with `magiskinit` calls | Flag for Magisk removal |
+| `dtbo`/`dtbo_a` | Extra overlay nodes (`/magisk`, `/overlay/magisk`) | Flag for reflash |
+| `vbmeta`/`vbmeta_a` | Disabled AVB flags (`androidboot.veritymode=enforcing` missing) | Critical — requires reflash before boot analysis |
+| `system`/`system_a` | MagiskHide props (`ro.magisk.hide`, `ro.debuggable=1`) | Log only (handled in step 4) |
+| `vendor`/`vendor_a` | Magisk module traces in `/vendor/lib/modules` | Log only |
+
+After flashing boot partition during Magisk removal:
+1. Verify no Magisk artifacts remain in ramdisk
+2. Check `init.rc` for clean stock syntax
+3. Confirm kernel cmdline lacks `androidboot.magisk=*`
+
+---
+
+## Cross-References
+
+- **Operations manual**: See `OPERATIONS.md` for Sahara handshake, Firehose XML commands, and USB transport layer
+- **Design rationale**: See `DESIGN.md` for why forensic evidence is saved before modification (Design Decision 5)
+- **MagiskCore debugging**: See `../OFFLINE_AGENT_GUIDE.md` for 5 common debugging scenarios with exact line references
+- **Health check**: See `../HEALTH_CHECK.md` for red flags and validation commands

@@ -11,11 +11,13 @@ public enum OverallVerdict
     Tampered,
     PartiallyRecovered,
     FullyRecovered,
-    PermanentDamage
+    PermanentDamage,
+    Aborted
 }
 
 public class RescueReport
 {
+    public bool IsDryRun { get; set; }
     public DeviceInfo Device { get; set; } = new();
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public List<PartitionDiagnosis> Partitions { get; set; } = new();
@@ -33,6 +35,8 @@ public class RescueReport
     public void PrintSummary()
     {
         Console.WriteLine($"\n=== BACKRabbit Rescue Report ===");
+        if (IsDryRun)
+            Console.WriteLine($"🔥 DRY-RUN MODE — No partitions were modified");
         Console.WriteLine($"Device: {Device.MsmId:X8}  SoC: {Device.SocModel}  Storage: {Device.StorageType}");
         Console.WriteLine($"Timestamp: {Timestamp:yyyy-MM-dd HH:mm:ss} UTC");
         Console.WriteLine($"Verdict: {Verdict}");

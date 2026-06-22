@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,19 +12,53 @@ public class RescueOrchestrator
 {
     private readonly FirehoseClient _client;
     private readonly string _backupDir;
+    private readonly bool _dryRun;
+    private readonly bool _force;
+    private readonly bool _skipDownloadModeCheck;
 
-    public RescueOrchestrator(FirehoseClient client, string backupDir)
+    public RescueOrchestrator(FirehoseClient client, string backupDir, bool dryRun = false, bool force = false, bool skipDownloadModeCheck = false)
     {
         _client = client;
         _backupDir = backupDir;
+        _dryRun = dryRun;
+        _force = force;
+        _skipDownloadModeCheck = skipDownloadModeCheck;
     }
 
     public async Task<RescueReport> RunFullRescueAsync(CancellationToken ct = default)
     {
-        var report = new RescueReport();
+        var report = new RescueReport { IsDryRun = _dryRun };
 
-        // [0/7] Verify backup directory
-        Console.WriteLine("\n[0/7] Verifying firmware backup...");
+        if (_dryRun)
+        {
+            Console.WriteLine("\n🔥 FIREHOSE DRY-RUN MODE ENABLED — NO FLASHING WILL OCCUR");
+            Console.WriteLine("   All diagnosis, detection, and verification will run normally.");
+            Console.WriteLine("   Write/erase operations will be logged but skipped.");
+        }
+
+        // [0/7] Ensure device is in Download Mode
+        Console.WriteLine("\n[0/7] Ensuring device is in Download Mode (button-guided if needed)...");
+        if (_skipDownloadModeCheck)
+        {
+            Console.WriteLine("  [SKIPPED] --skip-dl-mode-check specified — assuming device is already in Download Mode");
+        }
+        else
+        {
+            var inDownloadMode = await RebootDownloadManager.TryRebootToDownloadModeAsync(
+                adbClient: null,
+                skipInteractive: false,
+                ct: ct);
+
+            if (!inDownloadMode)
+            {
+                Console.WriteLine("❌ Cannot proceed without Download Mode. Aborting rescue.");
+                report.Verdict = OverallVerdict.Aborted;
+                return report;
+            }
+        }
+
+        // [1/7] Verify backup directory
+        Console.WriteLine("\n[1/7] Verifying firmware backup...");
         var requiredPartitions = new[] { "boot.img", "boot_a.img", "init_boot.img", "vbmeta.img", "vbmeta_a.img" };
         var missingCritical = new List<string>();
         if (!string.IsNullOrEmpty(_backupDir) && Directory.Exists(_backupDir))
@@ -43,20 +78,20 @@ public class RescueOrchestrator
             Console.WriteLine("  No backup directory — diagnosis-only mode.");
         }
 
-        // [1/7] Diagnose
-        Console.WriteLine("\n[1/7] Diagnosing partitions...");
+        // [2/7] Diagnose
+        Console.WriteLine("\n[2/7] Diagnosing partitions...");
         var diagnostics = new PartitionDiagnostics(_client, report, _backupDir);
         await diagnostics.RunAsync(ct);
         Console.WriteLine($"  Done. {report.Partitions.Count} partitions analyzed. Verdict: {report.Verdict}");
 
-        // [2/7] Fuse audit
-        Console.WriteLine("\n[2/7] Auditing QFuses...");
+        // [3/7] Fuse audit
+        Console.WriteLine("\n[3/7] Auditing QFuses...");
         var fuseAuditor = new QFuseAuditor(_client);
         report.FuseAudit = await fuseAuditor.AuditAsync(ct);
         Console.WriteLine($"  Done. {report.FuseAudit.TotalBlown}/{report.FuseAudit.TotalAvailable} fuses blown.");
 
-        // [3/7] Restore tampered partitions
-        Console.WriteLine("\n[3/7] Restoring tampered partitions...");
+        // [4/7] Restore tampered partitions
+        Console.WriteLine("\n[4/7] Restoring tampered partitions...");
         var tampered = report.Partitions
             .Where(p => p.Status == "Tampered")
             .Select(p => p.PartitionName)
@@ -64,17 +99,44 @@ public class RescueOrchestrator
 
         if (tampered.Count > 0)
         {
-            var restorer = new PartitionRestorer(_client, _backupDir, report);
-            await restorer.RestoreAsync(tampered, ct);
-            Console.WriteLine($"  Done. {report.RestoreActions.Count} actions taken.");
+            if (_dryRun)
+            {
+                Console.WriteLine($"  [DRY-RUN] Would restore {tampered.Count} tampered partition(s): {string.Join(", ", tampered)}");
+                foreach (var name in tampered)
+                {
+                    var backupPath = Path.Combine(_backupDir, $"{name}.img");
+                    if (File.Exists(backupPath))
+                    {
+                        var backupSize = new FileInfo(backupPath).Length;
+                        Console.WriteLine($"    [DRY-RUN] Would flash {name} from {backupPath} ({backupSize:N0} bytes)");
+                        report.RestoreActions.Add(new RestoreAction
+                        {
+                            PartitionName = name,
+                            Action = "DryRunSkipped",
+                            SourceFile = backupPath,
+                            Verified = false
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"    [DRY-RUN] {name}: no backup file — would skip");
+                    }
+                }
+            }
+            else
+            {
+                var restorer = new PartitionRestorer(_client, _backupDir, report, _force);
+                await restorer.RestoreAsync(tampered, ct);
+                Console.WriteLine($"  Done. {report.RestoreActions.Count} actions taken.");
+            }
         }
         else
         {
             Console.WriteLine("  No tampered partitions to restore.");
         }
 
-        // [4/7] Remove Magisk
-        Console.WriteLine("\n[4/7] Removing Magisk...");
+        // [5/7] Remove Magisk
+        Console.WriteLine("\n[5/7] Removing Magisk...");
         var magiskTampered = report.Partitions
             .Where(p => p.Anomalies.Any(a => a.Contains("Magisk")))
             .Select(p => p.PartitionName)
@@ -82,55 +144,109 @@ public class RescueOrchestrator
 
         if (magiskTampered.Count > 0)
         {
-            var remover = new MagiskRemover(_client, _backupDir, report);
-            await remover.RemoveAllAsync(ct);
-            Console.WriteLine($"  Done. {report.MagiskRemovals.Count} boot partitions processed.");
+            if (_dryRun)
+            {
+                Console.WriteLine($"  [DRY-RUN] Magisk detected in {magiskTampered.Count} partition(s): {string.Join(", ", magiskTampered)}");
+                Console.WriteLine($"  [DRY-RUN] Would parse boot image → detect artifacts → clean ramdisk → repack → flash → verify");
+                foreach (var name in magiskTampered)
+                {
+                    report.MagiskRemovals.Add(new MagiskRemovalResult
+                    {
+                        BootPartition = name,
+                        MagiskFound = true,
+                        MagiskRemoved = false,
+                        VbmetaRestored = false
+                    });
+                }
+                Console.WriteLine($"  [DRY-RUN] DRY-RUN PLAN: Flash {string.Join("+", magiskTampered)}, remove Magisk, verify");
+            }
+            else
+            {
+                var remover = new MagiskRemover(_client, _backupDir, report);
+                await remover.RemoveAllAsync(ct);
+                Console.WriteLine($"  Done. {report.MagiskRemovals.Count} boot partitions processed.");
+            }
         }
         else
         {
             Console.WriteLine("  No Magisk detected in boot partitions.");
         }
 
-        // [5/7] Final verification
-        Console.WriteLine("\n[5/7] Final verification...");
-        var verifyReport = new RescueReport();
-        var verifyDiagnostics = new PartitionDiagnostics(_client, verifyReport, _backupDir);
-        await verifyDiagnostics.RunAsync(ct);
-
-        // Update original report with post-rescue status
-        foreach (var vp in verifyReport.Partitions)
+        // [6/7] Final verification
+        Console.WriteLine("\n[6/7] Final verification...");
+        if (_dryRun)
         {
-            var orig = report.Partitions.Find(p => p.PartitionName == vp.PartitionName);
-            if (orig != null && orig.Status == "Tampered" && vp.Status == "Normal")
+            Console.WriteLine("  [DRY-RUN] Would re-run PartitionDiagnostics to confirm all partitions clean");
+            Console.WriteLine("  [DRY-RUN] Skipping post-rescue verification (no writes were performed)");
+            // In dry-run, verdict stays as diagnosed — no changes were made
+        }
+        else
+        {
+            var verifyReport = new RescueReport();
+            var verifyDiagnostics = new PartitionDiagnostics(_client, verifyReport, _backupDir);
+            await verifyDiagnostics.RunAsync(ct);
+
+            // Update original report with post-rescue status
+            foreach (var vp in verifyReport.Partitions)
             {
-                orig.Status = "Normal (restored)";
-                orig.Anomalies.Clear();
-                orig.Anomalies.Add("Restored successfully");
+                var orig = report.Partitions.Find(p => p.PartitionName == vp.PartitionName);
+                if (orig != null && orig.Status == "Tampered" && vp.Status == "Normal")
+                {
+                    orig.Status = "Normal (restored)";
+                    orig.Anomalies.Clear();
+                    orig.Anomalies.Add("Restored successfully");
+                }
             }
+
+            // Recalculate verdict
+            report.Verdict = DeterminePostRescueVerdict(report);
+            Console.WriteLine($"  Post-rescue verdict: {report.Verdict}");
         }
 
-        // Recalculate verdict
-        report.Verdict = DeterminePostRescueVerdict(report);
-        Console.WriteLine($"  Post-rescue verdict: {report.Verdict}");
+        // [7/7] Generate report
+        Console.WriteLine("\n[7/7] Generating rescue report...");
+        var reportJson = report.ToJson();
+        var reportHash = ComputeSha256(System.Text.Encoding.UTF8.GetBytes(reportJson));
 
-        // [6/7] Generate report
-        Console.WriteLine("\n[6/7] Generating rescue report...");
-        var reportPath = Path.Combine(_backupDir, "rescue-report.json");
-        await File.WriteAllTextAsync(reportPath, report.ToJson(), ct);
-        Console.WriteLine($"  Report saved to: {reportPath}");
+        if (!string.IsNullOrEmpty(_backupDir) && Directory.Exists(_backupDir))
+        {
+            var reportPath = Path.Combine(_backupDir, "rescue-report.json");
+            await File.WriteAllTextAsync(reportPath, reportJson, ct);
+            Console.WriteLine($"  Report saved to: {reportPath}");
+            Console.WriteLine($"  Report SHA256: {reportHash}");
+        }
+        else
+        {
+            // Save to temp directory even without backup dir — audit trail is always valuable
+            var fallbackDir = Path.Combine(Path.GetTempPath(), "BACKRabbit", "reports");
+            Directory.CreateDirectory(fallbackDir);
+            var reportPath = Path.Combine(fallbackDir,
+                $"rescue-report_{DateTime.Now:yyyyMMdd_HHmmss}.json");
+            await File.WriteAllTextAsync(reportPath, reportJson, ct);
+            Console.WriteLine($"  Report saved to: {reportPath}");
+            Console.WriteLine($"  Report SHA256: {reportHash}");
+        }
 
         // Print summary
         report.PrintSummary();
 
         // Reset device
-        Console.WriteLine("\nResetting device to system...");
-        try
+        if (_dryRun)
         {
-            await _client.ResetAsync("system", ct);
+            Console.WriteLine("\n[DRY-RUN] Would reset device to system");
+            Console.WriteLine("🔥 DRY-RUN COMPLETE — No partitions were modified.");
         }
-        catch
+        else
         {
-            Console.WriteLine("  Reset command sent (device may already be rebooting)");
+            Console.WriteLine("\nResetting device to system...");
+            try
+            {
+                await _client.ResetAsync("system", ct);
+            }
+            catch
+            {
+                Console.WriteLine("  Reset command sent (device may already be rebooting)");
+            }
         }
 
         return report;
@@ -148,5 +264,11 @@ public class RescueOrchestrator
         if (anyPermanent && !anyStillTampered) return OverallVerdict.PartiallyRecovered;
         if (anyPermanent && anyStillTampered) return OverallVerdict.PermanentDamage;
         return OverallVerdict.PartiallyRecovered;
+    }
+
+    private static string ComputeSha256(byte[] data)
+    {
+        var hash = SHA256.HashData(data);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 }

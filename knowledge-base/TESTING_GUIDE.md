@@ -199,6 +199,57 @@ Expected: **NO OUTPUT**. If any hit found → STOP, fix it, re-run.
 | ADB shell command | < 1 second | ~0.3s (via server proxy) |
 | Full wizard (test mode) | < 10 seconds | ~5s |
 
+## 6. Firehose Rescue Testing (Live Device)
+
+See [Firehose Rescue Testing Protocol](firehose/TESTING_PROTOCOL.md) for the complete zero-brick validation procedure. Summary:
+
+| Phase | Command | Risk | What It Validates |
+|-------|---------|------|-------------------|
+| 1: Dry-Run | `firehose rescue full --backup ./stock --dry-run` | **Zero** | Diagnosis, Magisk detection, GPT validation — no flashing |
+| 2: Stock Flash | Manual Odin boot flash + dry-run | **Low** | Stock boot integrity, clean detection |
+| 3: Magisk Test | Dry-run → live rescue on Magisk-patched device | **Medium** | Full removal pipeline with verification |
+| 4: DTBO Stress | Dry-run → live rescue with DTBO Magisk module | **Medium** | DTBO overlay detection + reflash ordering |
+
+### Dry-Run Mode (P0 — Implemented)
+
+```powershell
+# Zero-risk validation — runs diagnosis + detection, skips all flash/erase
+backrabbit firehose rescue full --device COM3 --loader firehose.elf --backup ./stock-backup --dry-run
+```
+
+**What runs:** Phase 0 (backup check), Phase 1 (diagnosis), Phase 2 (fuse audit).  
+**What's skipped:** Phase 3 (restore), Phase 4 (unmagisk), Phase 5 (verify), reset.  
+**Expected output:** `🔥 FIREHOSE DRY-RUN MODE ENABLED — NO FLASHING WILL OCCUR` banner, `[DRY-RUN]` prefixed logs, `IsDryRun: true` in report JSON.
+
+### Firehose Test Suite
+
+```powershell
+# 32 tests — must all pass before any live device testing
+dotnet test BACKRabbit.Protocol.Firehose.Tests -c Release
+# Expected: 32 passed, 0 failed, 0 skipped
+```
+
+---
+
+## 7. Firehose Dry-Run Validation Checklist
+
+After each dry-run execution, verify:
+
+| # | Check | Command | Expected |
+|---|-------|---------|----------|
+| 1 | Dry-run banner | `findstr "FIREHOSE DRY-RUN MODE" log.txt` | Present at start |
+| 2 | Diagnosis completed | `findstr "partitions analyzed" log.txt` | Count matches device |
+| 3 | No flash operations | `findstr "Erased\|Flashed" log.txt` | **ZERO matches** |
+| 4 | All actions dry-run | Check `rescue-report.json` | `Action: DryRunSkipped` |
+| 5 | Magisk not removed | Check `rescue-report.json` | `MagiskRemoved: false` |
+| 6 | Completion banner | `findstr "DRY-RUN COMPLETE" log.txt` | Present at end |
+| 7 | Report IsDryRun flag | Check `rescue-report.json` | `IsDryRun: true` |
+| 8 | No device reset | `findstr "Resetting device" log.txt` | Only `[DRY-RUN] Would reset` |
+| 9 | Build still passes | `dotnet build BACKRabbit.CLI -c Release` | 0 errors |
+| 10 | Firehose tests pass | `dotnet test BACKRabbit.Protocol.Firehose.Tests` | 32/32 PASS |
+
+---
+
 ## Coverage Gaps
 
 | Component | Gap | Priority |
@@ -212,8 +263,12 @@ Expected: **NO OUTPUT**. If any hit found → STOP, fix it, re-run.
 | AdbClient | No unit tests (requires device) | LOW |
 | FastbootClient | No unit tests (requires device) | LOW |
 | DownloadModeFlasher | No unit tests (requires device) | LOW |
+| **Firehose: DTBO Magisk overlay detection** | **No Magisk-specific DTBO scanning (P1)** | **HIGH** |
+| **Firehose: Structured log output** | **Prose-only, no machine-parseable tags (P2)** | **MEDIUM** |
+| **Firehose: USB transport speed logging** | **Speed not logged during reads (P2)** | **MEDIUM** |
+| **Firehose: MagiskVerifier extraction** | **Verification inline in MagiskRemover (P3)** | **LOW** |
 
 ---
 
 ## Last Updated
-2026-06-18 — v2.0 Ship
+2026-06-21 — v2.1: Added Firehose rescue testing sections, dry-run validation checklist, Firehose coverage gaps

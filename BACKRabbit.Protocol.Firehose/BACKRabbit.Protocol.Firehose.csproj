@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\BACKRabbit.Usb\BACKRabbit.Usb.csproj" />
     <ProjectReference Include="..\BACKRabbit.MagiskCore\BACKRabbit.MagiskCore.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Adb\BACKRabbit.Protocol.Adb.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@
 <ItemGroup>
     <ProjectReference Include="..\BACKRabbit.MagiskCore\BACKRabbit.MagiskCore.csproj" />
     <ProjectReference Include="..\BACKRabbit.Protocol.Fastboot\BACKRabbit.Protocol.Fastboot.csproj" />
+    <ProjectReference Include="..\BACKRabbit.Protocol.Adb\BACKRabbit.Protocol.Adb.csproj" />
     <PackageReference Include="SharpCompress" Version="0.38.0" />
   </ItemGroup>
 

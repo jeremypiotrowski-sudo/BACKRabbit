@@ -225,3 +225,73 @@ If no `--backup` directory provided:
 4. Download from Samsung FUS (auth token required)
 5. Decrypt .enc4 → extract .zip → extract .tar.md5 → .img files
 6. Pass output directory to orchestrator as `backupDir`
+
+---
+
+## 9. USB Transport Layer (Deep Dive)
+
+### Endpoint Assignment
+
+BACKRabbit hardcodes two USB bulk endpoints (`UsbDeviceManager.cs:39,65`):
+- **EP 0x02 (OUT)** — Host→Device writes. All Sahara commands, Firehose XML payloads, and raw flash data flow through this endpoint.
+- **EP 0x81 (IN)** — Device→Host reads. Sahara responses, Firehose ACKs, and partition dumps return through this endpoint.
+
+These are standard Qualcomm EDL endpoint assignments. Samsung devices in Download Mode expose the same endpoint pair when the Sahara protocol handshake succeeds and the device transitions to Firehose mode.
+
+### Packet Framing (Sahara Protocol)
+
+Every Sahara packet uses an 8-byte header followed by a variable-length payload (`WinUsbTransport.cs`):
+
+```
+[uint32 Command (LE)] [uint32 Length (LE)] [payload of (Length - 8) bytes]
+```
+
+- **Command:** Sahara command code (e.g., 0x01 = Hello, 0x02 = HelloResponse, 0x03 = ReadData, 0x06 = CommandDone)
+- **Length:** Total packet size including the 8-byte header
+- **Receive logic:** Read 8 bytes → parse command+length → read (length-8) payload bytes
+- **Send logic:** Serialize packet to byte array → write entire buffer to EP 0x02
+
+### Per-Operation Timeouts
+
+| Operation | Timeout | Source |
+|-----------|---------|--------|
+| USB bulk write | 5000ms | `UsbDeviceManager.Write()` default |
+| USB bulk read | 5000ms | `UsbDeviceManager.Read()` default |
+| Serial read/write | 5000ms | `WinUsbTransport` serial mode |
+| Sahara Hello response | 30000ms | `FirehoseClient` handshake |
+| Firehose configure ACK | 120000ms | `FirehoseClient` per-operation |
+| Firehose program (flash) | 120000ms | Per-partition, size-dependent |
+| Full rescue operation | No hard cap | Orchestrator step-by-step |
+
+### Transport Fallback Chain
+
+1. **WinUSB** (primary) — LibUsbDotNet via `UsbDeviceManager`, VID 0x04E8, Download Mode PIDs [0x685D, 0x6860, 0x6862, 0x6864, 0x6601]
+2. **Serial/COM** (fallback) — 115200 baud, 8N1, 4096-byte stream buffer, for devices exposing EDL via serial
+3. **Unix TTY** (Linux/macOS fallback) — Same framing, different device path
+
+### Device Detection
+
+- `UsbDeviceManager.FindSamsungDownloadMode()` — Opens by VID 0x04E8, PID 0x6601 (most common Download Mode PID)
+- `UsbDeviceManager.ListDevices(samsungOnly: true)` — Enumerates all USB devices, filters by VID 0x04E8
+- `FirehoseDeviceDetector` — Wraps `UsbDeviceManager`, adds Sahara handshake verification to confirm EDL readiness
+
+### Magisk-Specific Transport Diagnostics
+
+During Magisk uninstall verification, the transport layer must meet these thresholds:
+
+- **Boot partition read speed** must exceed 1.2MB/s (indicates healthy USB 2.0 link). Below 800KB/s → risk of incomplete boot image flashing.
+- **Retry threshold**: >3 consecutive read retries on boot partition triggers USB fallback to serial transport.
+- **Magisk artifact scan**: When reading boot partition, monitor for:
+  - Unexpected `0xFF` padding patterns (Magisk often leaves traces in unused ramdisk space)
+  - Non-standard offsets in `init.rc` (Magisk insertion points)
+- **Transport health metric**: `successful_boot_reads / total_boot_reads` must exceed 0.95 for uninstall to proceed. Below this threshold, the USB link is too unstable for reliable boot image manipulation.
+
+---
+
+## Cross-References
+
+- **Failure modes**: See `FAILURES.md` for 15 documented failure modes with recovery procedures
+- **Design rationale**: See `DESIGN.md` for why sequential USB transfers are mandatory (Design Decision 1)
+- **Build/deploy**: See `BUILD.md` for producing distributable EXE
+- **MagiskCore architecture**: See `../OFFLINE_AGENT_GUIDE.md` for boot image parsing, repacking, and artifact detection
+- **Health check**: See `../HEALTH_CHECK.md` for system validation commands

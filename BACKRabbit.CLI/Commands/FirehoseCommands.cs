@@ -28,6 +28,9 @@ public static class FirehoseCommands
     private static readonly Option<string?> ModelOpt = new("--model", "Samsung model for firmware sourcing (e.g., SM-F966U1)");
     private static readonly Option<string?> RegionOpt = new("--region", "CSC/region code for firmware sourcing (e.g., XAA)");
     private static readonly Option<bool> SkipTuiOpt = new("--skip-tui", "Skip interactive TUI for firmware sourcing");
+    private static readonly Option<bool> DryRunOpt = new("--dry-run", () => false, "Run full diagnosis and detection without flashing any partitions");
+    private static readonly Option<bool> ForceOpt = new("--force", () => false, "Override blocklist protection for device-unique partitions (requires typed confirmation)");
+    private static readonly Option<bool> SkipDlModeCheckOpt = new("--skip-dl-mode-check", () => false, "Skip automatic Download Mode reboot (use if device is already in Download Mode)");
 
     static FirehoseCommands()
     {
@@ -351,7 +354,7 @@ public static class FirehoseCommands
     private static Command CreateRescueFull()
     {
         var cmd = new Command("full", "Run complete rescue sequence (diagnose + fuses + restore + unmagisk)")
-            { DeviceOpt, LoaderOpt, BackupOpt, ModelOpt, RegionOpt, SkipTuiOpt };
+            { DeviceOpt, LoaderOpt, BackupOpt, ModelOpt, RegionOpt, SkipTuiOpt, DryRunOpt, ForceOpt, SkipDlModeCheckOpt };
         cmd.Handler = CommandHandler.Create(async (InvocationContext ctx) =>
         {
             var (client, _) = await InitClientAsync(ctx);
@@ -399,7 +402,27 @@ public static class FirehoseCommands
                 Console.WriteLine("   Provide --backup, --model/--region, or use 'firmware source' first.");
             }
 
-            var orchestrator = new RescueOrchestrator(client, resolvedBackupDir ?? "");
+            var dryRun = ctx.ParseResult.GetValueForOption(DryRunOpt);
+            var force = ctx.ParseResult.GetValueForOption(ForceOpt);
+            var skipDlModeCheck = ctx.ParseResult.GetValueForOption(SkipDlModeCheckOpt);
+
+            // --force requires explicit typed confirmation
+            if (force && !dryRun)
+            {
+                Console.WriteLine("\n⚠️  --force WILL override the blocklist and allow flashing of:");
+                Console.WriteLine("   sec, ddr, limits, apdp, msadp — device-unique partitions.");
+                Console.WriteLine("   Flashing these partitions can cause PERMANENT DAMAGE.");
+                Console.Write("\n   Type \"I understand the risks\" to proceed: ");
+                var confirmation = Console.ReadLine();
+                if (confirmation != "I understand the risks")
+                {
+                    Console.WriteLine("   Confirmation failed. Aborting rescue.");
+                    return;
+                }
+                Console.WriteLine("   Confirmation accepted. Proceeding with force override.\n");
+            }
+
+            var orchestrator = new RescueOrchestrator(client, resolvedBackupDir ?? "", dryRun, force, skipDlModeCheck);
             await orchestrator.RunFullRescueAsync();
             // Device resets at end of full rescue — no disconnect needed
         });

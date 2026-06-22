@@ -145,7 +145,7 @@ public class FirehoseClient
     }
 
     /// <summary>Read a partition by name, return raw bytes.</summary>
-    public async Task<byte[]> ReadPartitionAsync(
+    public virtual async Task<byte[]> ReadPartitionAsync(
         string partitionName, int lun = 0, int sectorSize = 512,
         CancellationToken ct = default)
     {
@@ -181,7 +181,7 @@ public class FirehoseClient
     }
 
     /// <summary>Write a partition by name.</summary>
-    public async Task<bool> WritePartitionAsync(
+    public virtual async Task<bool> WritePartitionAsync(
         string partitionName, byte[] data, int lun = 0, int sectorSize = 512,
         CancellationToken ct = default)
     {
@@ -224,7 +224,7 @@ public class FirehoseClient
     }
 
     /// <summary>Erase a partition by name.</summary>
-    public async Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default)
+    public virtual async Task<bool> ErasePartitionAsync(string partitionName, int lun = 0, CancellationToken ct = default)
     {
         var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
@@ -237,7 +237,7 @@ public class FirehoseClient
     // ─── GPT / STORAGE INFO ──────────────────────────────────
 
     /// <summary>Dump the GPT partition table.</summary>
-    public async Task<List<GptPartitionEntry>> PrintGptAsync(int lun = 0, CancellationToken ct = default)
+    public virtual async Task<List<GptPartitionEntry>> PrintGptAsync(int lun = 0, CancellationToken ct = default)
     {
         var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
@@ -278,7 +278,7 @@ public class FirehoseClient
     }
 
     /// <summary>Query storage info (eMMC/UFS/NAND).</summary>
-    public async Task<string> GetStorageInfoAsync(CancellationToken ct = default)
+    public virtual async Task<string> GetStorageInfoAsync(CancellationToken ct = default)
     {
         var cmd = @"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
@@ -291,7 +291,7 @@ public class FirehoseClient
     // ─── MEMORY COMMANDS ─────────────────────────────────────
 
     /// <summary>Peek at memory address.</summary>
-    public async Task<byte[]> PeekAsync(uint address, uint size, CancellationToken ct = default)
+    public virtual async Task<byte[]> PeekAsync(uint address, uint size, CancellationToken ct = default)
     {
         var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
@@ -319,7 +319,7 @@ public class FirehoseClient
     // ─── DEVICE CONTROL ──────────────────────────────────────
 
     /// <summary>Reset the device.</summary>
-    public async Task ResetAsync(string mode = "system", CancellationToken ct = default)
+    public virtual async Task ResetAsync(string mode = "system", CancellationToken ct = default)
     {
         var cmd = $@"<?xml version=""1.0"" encoding=""UTF-8"" ?>
 <data>
